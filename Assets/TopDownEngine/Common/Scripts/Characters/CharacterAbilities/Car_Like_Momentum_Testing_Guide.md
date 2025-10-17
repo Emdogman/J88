@@ -2,17 +2,17 @@
 
 ## Overview
 
-The car-like momentum system makes the character behave like a car - it must come to a complete stop before changing direction. This creates realistic momentum physics where the character can't immediately reverse or turn while moving.
+The car-like momentum system makes the character behave like a car - it must come to a complete stop before changing direction. This creates realistic momentum physics where the character can't immediately reverse or turn while moving. The system works for all 8 directions including diagonals.
 
 ## How It Works
 
 ### **Car-Like Physics:**
-- **Character builds momentum** in both horizontal and vertical directions (like a car accelerating)
+- **Character builds momentum** in any direction (including diagonals) like a car accelerating
 - **Momentum decays when player gives opposite input (braking)** - like pressing brake pedal
 - **Only when braking is complete (momentum = 0)** can player change direction
 - **Only same direction or opposite direction allowed** while having momentum
 - **Any other direction is COMPLETELY BLOCKED** - input is zeroed
-- **Separate momentum tracking** for horizontal and vertical movement
+- **Works for all 8 directions** - horizontal, vertical, and diagonal movement
 
 ### **Stage-Based Behavior:**
 - **Stage 1 (Normal):** No car momentum - character responds immediately
@@ -96,16 +96,16 @@ The car-like momentum system makes the character behave like a car - it must com
 #### **Debug Display Shows:**
 - **Movement Stage:** Current movement stage
 - **Car Momentum Strength:** How strong momentum blocking is
-- **Horizontal Momentum:** Current horizontal momentum (-1 to 1)
-- **Vertical Momentum:** Current vertical momentum (-1 to 1)
+- **Momentum Direction:** Current momentum direction vector (x, y)
+- **Momentum Magnitude:** How strong the momentum is (0-1)
 - **Current Speed:** How fast character is moving
 - **Momentum Threshold:** Speed threshold for momentum
 
 #### **Console Logs:**
-- **"Car Momentum: Horizontal/Vertical braking"** - When opposite input is detected (allows braking)
-- **"Car Momentum: Horizontal/Vertical continuing"** - When same direction input is detected (allows continuing)
-- **"Car Momentum: BLOCKED horizontal/vertical direction change"** - When direction change is completely blocked
-- **Input and momentum direction values** - Shows which direction input vs momentum
+- **"Car Momentum: Braking (input blocked)"** - When opposite input is detected (allows braking)
+- **"Car Momentum: Continuing in same direction"** - When same direction input is detected (allows continuing)
+- **"Car Momentum: BLOCKED direction change"** - When direction change is completely blocked
+- **Direction similarity values** - Shows how similar input direction is to momentum direction
 
 ### **Troubleshooting:**
 

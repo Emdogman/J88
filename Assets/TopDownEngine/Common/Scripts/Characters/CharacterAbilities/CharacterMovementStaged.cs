@@ -159,6 +159,7 @@ namespace MoreMountains.TopDownEngine
         
         protected Vector2 _carMomentum = Vector2.zero;
         protected Vector2 _lastVelocity = Vector2.zero;
+        protected Vector2 _currentMomentumDirection = Vector2.zero;
 
         protected override void Initialization()
         {
@@ -365,141 +366,78 @@ namespace MoreMountains.TopDownEngine
 
         /// <summary>
         /// Applies car-like momentum system - character must stop before changing direction
+        /// Works for all 8 directions (including diagonals)
         /// </summary>
         protected virtual void ApplyCarLikeMomentum()
         {
-            // Get current velocity components
-            float currentHorizontalVelocity = _controller.CurrentMovement.x;
-            float currentVerticalVelocity = _controller.CurrentMovement.z;
+            // Get current velocity as a 2D vector
+            Vector2 currentVelocity = new Vector2(_controller.CurrentMovement.x, _controller.CurrentMovement.z);
+            float currentSpeed = currentVelocity.magnitude;
             
-            // Update horizontal car momentum
-            if (Mathf.Abs(currentHorizontalVelocity) > MomentumThreshold)
+            // Update momentum based on current movement direction
+            if (currentSpeed > MomentumThreshold)
             {
-                float horizontalDirection = Mathf.Sign(currentHorizontalVelocity);
-                _horizontalMomentum = Mathf.Lerp(_horizontalMomentum, horizontalDirection, 
+                Vector2 currentDirection = currentVelocity.normalized;
+                
+                // Build up momentum in the current direction
+                _currentMomentumDirection = Vector2.Lerp(_currentMomentumDirection, currentDirection, 
                     MomentumBuildRate * Time.deltaTime);
+                
+                _lastVelocity = currentVelocity;
             }
             else
             {
                 // Check if player is giving opposite input (braking)
-                bool isBrakingHorizontally = Mathf.Abs(_normalizedInput.x) > 0.1f && 
-                    Mathf.Abs(_horizontalMomentum) > 0.1f && 
-                    Mathf.Sign(_normalizedInput.x) == -Mathf.Sign(_horizontalMomentum);
+                bool isBraking = _normalizedInput.magnitude > 0.1f && 
+                    _currentMomentumDirection.magnitude > 0.1f && 
+                    Vector2.Dot(_normalizedInput.normalized, _currentMomentumDirection.normalized) < -0.3f;
                 
-                if (isBrakingHorizontally)
+                if (isBraking)
                 {
-                    // Player is braking - decay horizontal momentum
-                    _horizontalMomentum = Mathf.Lerp(_horizontalMomentum, 0f, 
+                    // Player is braking - decay momentum
+                    _currentMomentumDirection = Vector2.Lerp(_currentMomentumDirection, Vector2.zero, 
                         MomentumDecayRate * Time.deltaTime);
                 }
-                else if (Mathf.Abs(currentHorizontalVelocity) < 0.05f)
+                else if (currentSpeed < 0.05f)
                 {
                     // Only decay when completely stopped and not braking
-                    _horizontalMomentum = Mathf.Lerp(_horizontalMomentum, 0f, 
+                    _currentMomentumDirection = Vector2.Lerp(_currentMomentumDirection, Vector2.zero, 
                         MomentumDecayRate * Time.deltaTime);
                 }
             }
             
-            // Update vertical car momentum
-            if (Mathf.Abs(currentVerticalVelocity) > MomentumThreshold)
+            // Apply car-like momentum blocking for all directions
+            if (_currentMomentumDirection.magnitude > 0.1f && _normalizedInput.magnitude > 0.1f)
             {
-                float verticalDirection = Mathf.Sign(currentVerticalVelocity);
-                _verticalMomentum = Mathf.Lerp(_verticalMomentum, verticalDirection, 
-                    MomentumBuildRate * Time.deltaTime);
-            }
-            else
-            {
-                // Check if player is giving opposite input (braking)
-                bool isBrakingVertically = Mathf.Abs(_normalizedInput.y) > 0.1f && 
-                    Mathf.Abs(_verticalMomentum) > 0.1f && 
-                    Mathf.Sign(_normalizedInput.y) == -Mathf.Sign(_verticalMomentum);
+                Vector2 inputDirection = _normalizedInput.normalized;
+                Vector2 momentumDirection = _currentMomentumDirection.normalized;
                 
-                if (isBrakingVertically)
-                {
-                    // Player is braking - decay vertical momentum
-                    _verticalMomentum = Mathf.Lerp(_verticalMomentum, 0f, 
-                        MomentumDecayRate * Time.deltaTime);
-                }
-                else if (Mathf.Abs(currentVerticalVelocity) < 0.05f)
-                {
-                    // Only decay when completely stopped and not braking
-                    _verticalMomentum = Mathf.Lerp(_verticalMomentum, 0f, 
-                        MomentumDecayRate * Time.deltaTime);
-                }
-            }
-            
-            // Apply car-like momentum blocking for horizontal movement
-            if (Mathf.Abs(_horizontalMomentum) > 0.1f)
-            {
-                float horizontalInputDirection = Mathf.Sign(_normalizedInput.x);
-                float horizontalMomentumDirection = Mathf.Sign(_horizontalMomentum);
+                float directionSimilarity = Vector2.Dot(inputDirection, momentumDirection);
                 
-                // Only allow same direction or opposite direction (braking)
-                if (Mathf.Abs(_normalizedInput.x) > 0.1f)
+                if (directionSimilarity > 0.7f)
                 {
-                    if (horizontalInputDirection == horizontalMomentumDirection)
+                    // Same direction - allow it to continue
+                    if (ShowDebugInfo)
                     {
-                        // Same horizontal direction - allow it to continue
-                        if (ShowDebugInfo)
-                        {
-                            Debug.Log($"Car Momentum: Horizontal continuing. Input: {horizontalInputDirection}, Momentum: {horizontalMomentumDirection}");
-                        }
-                    }
-                    else if (horizontalInputDirection == -horizontalMomentumDirection)
-                    {
-                        // Opposite horizontal direction - BLOCK input but allow momentum decay
-                        _normalizedInput.x = 0f;
-                        if (ShowDebugInfo)
-                        {
-                            Debug.Log($"Car Momentum: Horizontal braking (input blocked). Momentum will decay. Input: {horizontalInputDirection}, Momentum: {horizontalMomentumDirection}");
-                        }
-                    }
-                    else
-                    {
-                        // Any other direction - BLOCK horizontal input completely
-                        _normalizedInput.x = 0f;
-                        if (ShowDebugInfo)
-                        {
-                            Debug.Log($"Car Momentum: BLOCKED horizontal direction change. Must brake to zero momentum first. Input: {horizontalInputDirection}, Momentum: {horizontalMomentumDirection}");
-                        }
+                        Debug.Log($"Car Momentum: Continuing in same direction. Similarity: {directionSimilarity:F2}");
                     }
                 }
-            }
-            
-            // Apply car-like momentum blocking for vertical movement
-            if (Mathf.Abs(_verticalMomentum) > 0.1f)
-            {
-                float verticalInputDirection = Mathf.Sign(_normalizedInput.y);
-                float verticalMomentumDirection = Mathf.Sign(_verticalMomentum);
-                
-                // Only allow same direction or opposite direction (braking)
-                if (Mathf.Abs(_normalizedInput.y) > 0.1f)
+                else if (directionSimilarity < -0.3f)
                 {
-                    if (verticalInputDirection == verticalMomentumDirection)
+                    // Opposite direction - BLOCK input but allow momentum decay
+                    _normalizedInput = Vector2.zero;
+                    if (ShowDebugInfo)
                     {
-                        // Same vertical direction - allow it to continue
-                        if (ShowDebugInfo)
-                        {
-                            Debug.Log($"Car Momentum: Vertical continuing. Input: {verticalInputDirection}, Momentum: {verticalMomentumDirection}");
-                        }
+                        Debug.Log($"Car Momentum: Braking (input blocked). Momentum will decay. Similarity: {directionSimilarity:F2}");
                     }
-                    else if (verticalInputDirection == -verticalMomentumDirection)
+                }
+                else
+                {
+                    // Different direction - BLOCK input completely
+                    _normalizedInput = Vector2.zero;
+                    if (ShowDebugInfo)
                     {
-                        // Opposite vertical direction - BLOCK input but allow momentum decay
-                        _normalizedInput.y = 0f;
-                        if (ShowDebugInfo)
-                        {
-                            Debug.Log($"Car Momentum: Vertical braking (input blocked). Momentum will decay. Input: {verticalInputDirection}, Momentum: {verticalMomentumDirection}");
-                        }
-                    }
-                    else
-                    {
-                        // Any other direction - BLOCK vertical input completely
-                        _normalizedInput.y = 0f;
-                        if (ShowDebugInfo)
-                        {
-                            Debug.Log($"Car Momentum: BLOCKED vertical direction change. Must brake to zero momentum first. Input: {verticalInputDirection}, Momentum: {verticalMomentumDirection}");
-                        }
+                        Debug.Log($"Car Momentum: BLOCKED direction change. Must brake to zero momentum first. Similarity: {directionSimilarity:F2}");
                     }
                 }
             }
@@ -691,8 +629,8 @@ namespace MoreMountains.TopDownEngine
                 GUI.Label(new Rect(10, 10, 300, 20), $"Movement Stage: {CurrentStage}");
                 GUI.Label(new Rect(10, 30, 300, 20), $"Current Deceleration: {GetCurrentStageDeceleration()}");
                 GUI.Label(new Rect(10, 50, 300, 20), $"Car Momentum Strength: {GetCarMomentumStrength():F2}");
-                GUI.Label(new Rect(10, 70, 300, 20), $"Horizontal Momentum: {_horizontalMomentum:F2}");
-                GUI.Label(new Rect(10, 90, 300, 20), $"Vertical Momentum: {_verticalMomentum:F2}");
+                GUI.Label(new Rect(10, 70, 300, 20), $"Momentum Direction: {_currentMomentumDirection}");
+                GUI.Label(new Rect(10, 90, 300, 20), $"Momentum Magnitude: {_currentMomentumDirection.magnitude:F2}");
                 GUI.Label(new Rect(10, 110, 300, 20), $"Current Speed: {_controller.CurrentMovement.magnitude:F2}");
                 GUI.Label(new Rect(10, 130, 300, 20), $"Momentum Threshold: {MomentumThreshold:F2}");
                 
