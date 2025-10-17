@@ -524,21 +524,32 @@ namespace MoreMountains.TopDownEngine
         /// <param name="originalInput">The original input before momentum processing</param>
         protected virtual void ApplyDrunkEffects(float drunkIntensity, Vector2 originalInput)
         {
-            // Apply wobble effects independently of momentum system
-            // This ensures wobble works even when momentum blocks input
+            // Determine wobble intensity based on drunk level and current stage
+            float wobbleIntensity = GetWobbleIntensity(drunkIntensity);
             
+            // If wobble intensity is 0, no wobble effects
+            if (wobbleIntensity <= 0f)
+            {
+                if (ShowDebugInfo)
+                {
+                    Debug.Log($"No Wobble: Intensity {drunkIntensity:F2}, Wobble Intensity: {wobbleIntensity:F2}");
+                }
+                return;
+            }
+            
+            // Apply wobble effects with calculated intensity
             // Pure sinusoidal wobble - no random effects that cause direction changes
-            float wobbleX = Mathf.Sin(Time.time * DrunkWobbleSpeed) * DrunkWobbleAmount * drunkIntensity;
-            wobbleX += Mathf.Sin(Time.time * DrunkWobbleSpeed * 0.7f) * DrunkWobbleAmount * 0.5f * drunkIntensity;
+            float wobbleX = Mathf.Sin(Time.time * DrunkWobbleSpeed) * DrunkWobbleAmount * wobbleIntensity;
+            wobbleX += Mathf.Sin(Time.time * DrunkWobbleSpeed * 0.7f) * DrunkWobbleAmount * 0.5f * wobbleIntensity;
             
-            float wobbleY = Mathf.Cos(Time.time * DrunkWobbleSpeed * 1.3f) * DrunkWobbleAmount * drunkIntensity;
-            wobbleY += Mathf.Cos(Time.time * DrunkWobbleSpeed * 0.9f) * DrunkWobbleAmount * 0.6f * drunkIntensity;
+            float wobbleY = Mathf.Cos(Time.time * DrunkWobbleSpeed * 1.3f) * DrunkWobbleAmount * wobbleIntensity;
+            wobbleY += Mathf.Cos(Time.time * DrunkWobbleSpeed * 0.9f) * DrunkWobbleAmount * 0.6f * wobbleIntensity;
             
             // Add smooth sway effect with sinusoidal movement
-            float swayX = Mathf.Sin(Time.time * DrunkSwaySpeed) * DrunkSwayAmount * drunkIntensity;
-            swayX += Mathf.Sin(Time.time * DrunkSwaySpeed * 1.5f) * DrunkSwayAmount * 0.4f * drunkIntensity;
+            float swayX = Mathf.Sin(Time.time * DrunkSwaySpeed) * DrunkSwayAmount * wobbleIntensity;
+            swayX += Mathf.Sin(Time.time * DrunkSwaySpeed * 1.5f) * DrunkSwayAmount * 0.4f * wobbleIntensity;
             
-            float swayY = Mathf.Cos(Time.time * DrunkSwaySpeed * 0.8f) * DrunkSwayAmount * 0.3f * drunkIntensity;
+            float swayY = Mathf.Cos(Time.time * DrunkSwaySpeed * 0.8f) * DrunkSwayAmount * 0.3f * wobbleIntensity;
             
             // NO random effects - only pure sinusoidal wobble
             // This prevents unwanted direction changes while maintaining drunk visual effects
@@ -577,8 +588,32 @@ namespace MoreMountains.TopDownEngine
             
             if (ShowDebugInfo)
             {
-                Debug.Log($"Drunk Effects: Intensity {drunkIntensity:F2}, Offset {drunkOffset}, Original Input: {originalInput}, IsDrifting: {isDrifting}");
+                Debug.Log($"Drunk Effects: Intensity {drunkIntensity:F2}, Wobble Intensity: {wobbleIntensity:F2}, Offset {drunkOffset}, Original Input: {originalInput}, IsDrifting: {isDrifting}");
             }
+        }
+
+        /// <summary>
+        /// Calculates wobble intensity based on drunk level and current stage
+        /// </summary>
+        /// <param name="drunkIntensity">The current drunk intensity (0-1)</param>
+        /// <returns>Wobble intensity multiplier (0-1)</returns>
+        protected virtual float GetWobbleIntensity(float drunkIntensity)
+        {
+            // No wobble at low and middle drunk levels (Stages 1 and 2)
+            if (CurrentStage == MovementStage.Stage1_Normal || CurrentStage == MovementStage.Stage2_Drift)
+            {
+                return 0f; // No wobble at low/middle drunk
+            }
+            
+            // Only apply wobble at high drunk level (Stage 3)
+            if (CurrentStage == MovementStage.Stage3_HighDrift)
+            {
+                // Reduced wobble at high drunk - scale by 0.5 (50% of original)
+                return drunkIntensity * 0.5f;
+            }
+            
+            // Fallback - no wobble
+            return 0f;
         }
 
         /// <summary>
@@ -690,15 +725,17 @@ namespace MoreMountains.TopDownEngine
                 if (BeerManager.HasInstance)
                 {
                     float drunkIntensity = GetDrunkIntensity(BeerManager.Instance.CurrentBeer);
+                    float wobbleIntensity = GetWobbleIntensity(drunkIntensity);
                     GUI.Label(new Rect(10, 170, 300, 20), $"Drunk Intensity: {drunkIntensity:F2}");
+                    GUI.Label(new Rect(10, 190, 300, 20), $"Wobble Intensity: {wobbleIntensity:F2}");
                 }
                 
-                GUI.Label(new Rect(10, 190, 300, 20), "Press 1, 2, or 3 to switch stages");
+                GUI.Label(new Rect(10, 210, 300, 20), "Press 1, 2, or 3 to switch stages");
                 
                 if (BeerManager.HasInstance)
                 {
-                    GUI.Label(new Rect(10, 210, 300, 20), $"Beer Level: {BeerManager.Instance.CurrentBeer:F1}%");
-                    GUI.Label(new Rect(10, 230, 300, 20), $"Beer Zone: {BeerManager.Instance.CurrentZone}");
+                    GUI.Label(new Rect(10, 230, 300, 20), $"Beer Level: {BeerManager.Instance.CurrentBeer:F1}%");
+                    GUI.Label(new Rect(10, 250, 300, 20), $"Beer Zone: {BeerManager.Instance.CurrentZone}");
                 }
             }
         }
