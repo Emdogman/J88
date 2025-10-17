@@ -44,7 +44,7 @@ namespace MoreMountains.TopDownEngine
         /// How much beer is lost per second
         /// </summary>
         [Tooltip("How much beer is lost per second")]
-        public float DepletionRate = 1f;
+        public float DepletionRate = 5f;
 
         /// <summary>
         /// The minimum beer level (always 0)
