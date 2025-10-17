@@ -155,7 +155,7 @@ namespace MoreMountains.TopDownEngine
         /// How fast momentum decays when not moving
         /// </summary>
         [Tooltip("How fast momentum decays when not moving")]
-        public float MomentumDecayRate = 5f;
+        public float MomentumDecayRate = 100f;
         
         protected Vector2 _carMomentum = Vector2.zero;
         protected Vector2 _lastVelocity = Vector2.zero;
@@ -374,8 +374,18 @@ namespace MoreMountains.TopDownEngine
             Vector2 currentVelocity = new Vector2(_controller.CurrentMovement.x, _controller.CurrentMovement.z);
             float currentSpeed = currentVelocity.magnitude;
             
-            // Update momentum based on current movement direction
-            if (currentSpeed > MomentumThreshold)
+            // Check if player is giving opposite input (braking)
+            bool isBraking = _normalizedInput.magnitude > 0.1f && 
+                _currentMomentumDirection.magnitude > 0.1f && 
+                Vector2.Dot(_normalizedInput.normalized, _currentMomentumDirection.normalized) < -0.3f;
+            
+            if (isBraking)
+            {
+                // Player is braking - decay momentum immediately and continuously
+                _currentMomentumDirection = Vector2.Lerp(_currentMomentumDirection, Vector2.zero, 
+                    MomentumDecayRate * Time.deltaTime);
+            }
+            else if (currentSpeed > MomentumThreshold)
             {
                 Vector2 currentDirection = currentVelocity.normalized;
                 
@@ -385,25 +395,11 @@ namespace MoreMountains.TopDownEngine
                 
                 _lastVelocity = currentVelocity;
             }
-            else
+            else if (currentSpeed < 0.05f)
             {
-                // Check if player is giving opposite input (braking)
-                bool isBraking = _normalizedInput.magnitude > 0.1f && 
-                    _currentMomentumDirection.magnitude > 0.1f && 
-                    Vector2.Dot(_normalizedInput.normalized, _currentMomentumDirection.normalized) < -0.3f;
-                
-                if (isBraking)
-                {
-                    // Player is braking - decay momentum
-                    _currentMomentumDirection = Vector2.Lerp(_currentMomentumDirection, Vector2.zero, 
-                        MomentumDecayRate * Time.deltaTime);
-                }
-                else if (currentSpeed < 0.05f)
-                {
-                    // Only decay when completely stopped and not braking
-                    _currentMomentumDirection = Vector2.Lerp(_currentMomentumDirection, Vector2.zero, 
-                        MomentumDecayRate * Time.deltaTime);
-                }
+                // Only decay when completely stopped and not braking
+                _currentMomentumDirection = Vector2.Lerp(_currentMomentumDirection, Vector2.zero, 
+                    MomentumDecayRate * Time.deltaTime);
             }
             
             // Apply car-like momentum blocking for all directions
