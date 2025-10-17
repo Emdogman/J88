@@ -164,8 +164,14 @@ namespace MoreMountains.TopDownEngine
         {
             if (CurrentBeer > MinBeer)
             {
+                float oldBeer = CurrentBeer;
                 CurrentBeer -= DepletionRate * Time.deltaTime;
                 CurrentBeer = Mathf.Clamp(CurrentBeer, MinBeer, MaxBeer);
+                
+                if (ShowDebugInfo && oldBeer != CurrentBeer)
+                {
+                    Debug.Log($"BeerManager: Beer depleted from {oldBeer:F1} to {CurrentBeer:F1}");
+                }
                 
                 OnBeerLevelChanged?.Invoke(CurrentBeer);
             }
@@ -204,15 +210,16 @@ namespace MoreMountains.TopDownEngine
                 return;
             }
 
+            float oldBeer = CurrentBeer;
             CurrentBeer += amount;
             CurrentBeer = Mathf.Clamp(CurrentBeer, MinBeer, MaxBeer);
             
-            OnBeerLevelChanged?.Invoke(CurrentBeer);
-            
             if (ShowDebugInfo)
             {
-                Debug.Log($"Beer added: +{amount}, New level: {CurrentBeer:F1}");
+                Debug.Log($"BeerManager: Beer added +{amount}, from {oldBeer:F1} to {CurrentBeer:F1}");
             }
+            
+            OnBeerLevelChanged?.Invoke(CurrentBeer);
         }
 
         /// <summary>

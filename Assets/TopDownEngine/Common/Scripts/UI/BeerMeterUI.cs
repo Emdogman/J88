@@ -85,6 +85,7 @@ namespace MoreMountains.TopDownEngine
         protected virtual void Start()
         {
             AutoSetupUI();
+            EnsureFillImageSetup();
             InitializeUI();
             SubscribeToEvents();
             
@@ -188,6 +189,11 @@ namespace MoreMountains.TopDownEngine
         /// <param name="beerLevel">The new beer level</param>
         protected virtual void OnBeerLevelChanged(float beerLevel)
         {
+            if (ShowDebugInfo)
+            {
+                Debug.Log($"BeerMeterUI: OnBeerLevelChanged called with {beerLevel:F1}%");
+            }
+            
             UpdateBeerMeterFill(beerLevel);
             UpdateBeerMeterColor(beerLevel);
             UpdateBeerPercentageText(beerLevel);
@@ -215,6 +221,11 @@ namespace MoreMountains.TopDownEngine
         {
             if (FillImage != null)
             {
+                // Ensure proper fill settings
+                FillImage.type = Image.Type.Filled;
+                FillImage.fillMethod = Image.FillMethod.Horizontal;
+                FillImage.fillOrigin = 0; // Left to right
+                
                 float normalizedLevel = Mathf.Clamp01(beerLevel / 100f);
                 FillImage.fillAmount = normalizedLevel;
                 
@@ -222,6 +233,10 @@ namespace MoreMountains.TopDownEngine
                 {
                     Debug.Log($"Beer meter fill updated: {beerLevel:F1}% -> {normalizedLevel:F2} fill amount");
                 }
+            }
+            else
+            {
+                Debug.LogWarning("BeerMeterUI: FillImage is null! Cannot update beer meter fill.");
             }
         }
 
@@ -299,6 +314,34 @@ namespace MoreMountains.TopDownEngine
         }
 
         /// <summary>
+        /// Ensures FillImage is properly configured
+        /// </summary>
+        protected virtual void EnsureFillImageSetup()
+        {
+            if (FillImage != null)
+            {
+                // Force proper Image settings for fill
+                FillImage.type = Image.Type.Filled;
+                FillImage.fillMethod = Image.FillMethod.Horizontal;
+                FillImage.fillOrigin = 0; // Left to right
+                
+                // Create a simple white texture if no sprite
+                if (FillImage.sprite == null)
+                {
+                    Texture2D whiteTexture = new Texture2D(1, 1);
+                    whiteTexture.SetPixel(0, 0, Color.white);
+                    whiteTexture.Apply();
+                    FillImage.sprite = Sprite.Create(whiteTexture, new Rect(0, 0, 1, 1), new Vector2(0.5f, 0.5f));
+                    
+                    if (ShowDebugInfo)
+                    {
+                        Debug.Log("BeerMeterUI: Created default white sprite for FillImage");
+                    }
+                }
+            }
+        }
+
+        /// <summary>
         /// Automatically sets up the UI components if they're not assigned
         /// </summary>
         protected virtual void AutoSetupUI()
@@ -349,9 +392,20 @@ namespace MoreMountains.TopDownEngine
                     fillRect.offsetMax = Vector2.zero;
                     
                     FillImage = fillGO.AddComponent<Image>();
-                    FillImage.color = Zone2Color; // Start with zone 2 color
+                    
+                    // Force proper Image settings for fill
                     FillImage.type = Image.Type.Filled;
                     FillImage.fillMethod = Image.FillMethod.Horizontal;
+                    FillImage.fillOrigin = 0; // Left to right
+                    
+                    // Create a simple white texture for the fill (required for Image component)
+                    Texture2D whiteTexture = new Texture2D(1, 1);
+                    whiteTexture.SetPixel(0, 0, Color.white);
+                    whiteTexture.Apply();
+                    FillImage.sprite = Sprite.Create(whiteTexture, new Rect(0, 0, 1, 1), new Vector2(0.5f, 0.5f));
+                    
+                    // Set initial color
+                    FillImage.color = Zone2Color; // Start with zone 2 color
                     
                     // Get initial beer level from BeerManager if available
                     float initialBeerLevel = 50f; // Default fallback
@@ -550,6 +604,91 @@ namespace MoreMountains.TopDownEngine
             {
                 Debug.LogWarning("BeerManager not found! Cannot refresh beer meter.");
             }
+        }
+
+        /// <summary>
+        /// Context menu method to test fill amount directly
+        /// </summary>
+        [ContextMenu("Test Fill 25%")]
+        public virtual void TestFill25()
+        {
+            UpdateBeerMeterFill(25f);
+            Debug.Log("BeerMeterUI: Testing 25% fill");
+        }
+
+        /// <summary>
+        /// Context menu method to test fill amount directly
+        /// </summary>
+        [ContextMenu("Test Fill 50%")]
+        public virtual void TestFill50()
+        {
+            UpdateBeerMeterFill(50f);
+            Debug.Log("BeerMeterUI: Testing 50% fill");
+        }
+
+        /// <summary>
+        /// Context menu method to test fill amount directly
+        /// </summary>
+        [ContextMenu("Test Fill 75%")]
+        public virtual void TestFill75()
+        {
+            UpdateBeerMeterFill(75f);
+            Debug.Log("BeerMeterUI: Testing 75% fill");
+        }
+
+        /// <summary>
+        /// Context menu method to debug FillImage setup
+        /// </summary>
+        [ContextMenu("Debug FillImage Setup")]
+        public virtual void DebugFillImageSetup()
+        {
+            if (FillImage == null)
+            {
+                Debug.LogError("BeerMeterUI: FillImage is NULL!");
+                return;
+            }
+
+            Debug.Log($"BeerMeterUI: FillImage found - Type: {FillImage.type}, FillMethod: {FillImage.fillMethod}, FillAmount: {FillImage.fillAmount}");
+            Debug.Log($"BeerMeterUI: FillImage GameObject: {FillImage.gameObject.name}, Active: {FillImage.gameObject.activeInHierarchy}");
+            Debug.Log($"BeerMeterUI: FillImage Component Enabled: {FillImage.enabled}");
+            Debug.Log($"BeerMeterUI: FillImage Sprite: {(FillImage.sprite != null ? FillImage.sprite.name : "NULL")}");
+            Debug.Log($"BeerMeterUI: FillImage Color: {FillImage.color}");
+        }
+
+        /// <summary>
+        /// Context menu method to fix FillImage setup
+        /// </summary>
+        [ContextMenu("Fix FillImage Setup")]
+        public virtual void FixFillImageSetup()
+        {
+            if (FillImage == null)
+            {
+                Debug.LogError("BeerMeterUI: FillImage is NULL! Cannot fix.");
+                return;
+            }
+
+            // Force proper Image settings
+            FillImage.type = Image.Type.Filled;
+            FillImage.fillMethod = Image.FillMethod.Horizontal;
+            FillImage.fillOrigin = 0; // Left to right
+            
+            // Create a simple white texture if no sprite
+            if (FillImage.sprite == null)
+            {
+                Texture2D whiteTexture = new Texture2D(1, 1);
+                whiteTexture.SetPixel(0, 0, Color.white);
+                whiteTexture.Apply();
+                FillImage.sprite = Sprite.Create(whiteTexture, new Rect(0, 0, 1, 1), new Vector2(0.5f, 0.5f));
+                Debug.Log("BeerMeterUI: Created default white sprite for FillImage");
+            }
+            
+            // Set a visible color
+            FillImage.color = new Color(1f, 0.5f, 0f, 1f); // Orange color
+            
+            // Test with 50% fill
+            FillImage.fillAmount = 0.5f;
+            
+            Debug.Log("BeerMeterUI: FillImage setup fixed - should now show 50% orange fill");
         }
     }
 }
