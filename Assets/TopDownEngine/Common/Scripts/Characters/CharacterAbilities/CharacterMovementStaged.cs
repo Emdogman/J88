@@ -87,37 +87,6 @@ namespace MoreMountains.TopDownEngine
         [Tooltip("How much drift affects direction changes while moving")]
         public float DriftInfluence = 0.5f;
 
-        [Header("Drunk Movement Settings")]
-
-        /// <summary>
-        /// How much the character wobbles when drunk
-        /// </summary>
-        [Tooltip("How much the character wobbles when drunk")]
-        public float DrunkWobbleAmount = 0.8f;
-
-        /// <summary>
-        /// How fast the wobble oscillates
-        /// </summary>
-        [Tooltip("How fast the wobble oscillates")]
-        public float DrunkWobbleSpeed = 7f;
-
-        /// <summary>
-        /// How much random direction changes occur when drunk
-        /// </summary>
-        [Tooltip("How much random direction changes occur when drunk")]
-        public float DrunkRandomness = 0.4f;
-
-        /// <summary>
-        /// How much the character sways side to side when drunk
-        /// </summary>
-        [Tooltip("How much the character sways side to side when drunk")]
-        public float DrunkSwayAmount = 0.6f;
-
-        /// <summary>
-        /// How fast the sway oscillates
-        /// </summary>
-        [Tooltip("How fast the sway oscillates")]
-        public float DrunkSwaySpeed = 4f;
 
         protected Vector2 _previousMovementDirection = Vector2.zero;
         protected Vector2 _currentMomentum = Vector2.zero;
@@ -160,7 +129,6 @@ namespace MoreMountains.TopDownEngine
         protected Vector2 _carMomentum = Vector2.zero;
         protected Vector2 _lastVelocity = Vector2.zero;
         protected Vector2 _currentMomentumDirection = Vector2.zero;
-        protected bool _momentumBlockedInput = false;
 
         protected override void Initialization()
         {
@@ -254,11 +222,6 @@ namespace MoreMountains.TopDownEngine
             
             _normalizedInput = _currentInput.normalized;
 
-            // Store original input before any processing
-            Vector2 originalInput = _normalizedInput;
-            
-            // Reset momentum blocking flag at start of each frame
-            _momentumBlockedInput = false;
 
             // Apply car-like momentum system for stages 2 and 3
             if (CurrentStage != MovementStage.Stage1_Normal)
@@ -266,17 +229,7 @@ namespace MoreMountains.TopDownEngine
                 ApplyCarLikeMomentum();
             }
 
-            // Apply drunk movement effects based on beer level (after momentum system)
-            if (UseBeerSystem && BeerManager.HasInstance)
-            {
-                float beerLevel = BeerManager.Instance.CurrentBeer;
-                float drunkIntensity = GetDrunkIntensity(beerLevel);
-                
-                if (drunkIntensity > 0.1f)
-                {
-                    ApplyDrunkEffects(drunkIntensity, originalInput);
-                }
-            }
+             // Drunk movement effects removed - no wobble
 
             float interpolationSpeed = 1f;
             
@@ -433,23 +386,21 @@ namespace MoreMountains.TopDownEngine
                 }
                 else if (directionSimilarity < -0.3f)
                 {
-                    // Opposite direction - BLOCK input but allow momentum decay
-                    _normalizedInput = Vector2.zero;
-                    _momentumBlockedInput = true; // Track that input was blocked
-                    if (ShowDebugInfo)
-                    {
-                        Debug.Log($"Car Momentum: Braking (input blocked). Momentum will decay. Similarity: {directionSimilarity:F2}");
-                    }
+                     // Opposite direction - BLOCK input but allow momentum decay
+                     _normalizedInput = Vector2.zero;
+                     if (ShowDebugInfo)
+                     {
+                         Debug.Log($"Car Momentum: Braking (input blocked). Momentum will decay. Similarity: {directionSimilarity:F2}");
+                     }
                 }
                 else
                 {
-                    // Different direction - BLOCK input completely
-                    _normalizedInput = Vector2.zero;
-                    _momentumBlockedInput = true; // Track that input was blocked
-                    if (ShowDebugInfo)
-                    {
-                        Debug.Log($"Car Momentum: BLOCKED direction change. Must brake to zero momentum first. Similarity: {directionSimilarity:F2}");
-                    }
+                     // Different direction - BLOCK input completely
+                     _normalizedInput = Vector2.zero;
+                     if (ShowDebugInfo)
+                     {
+                         Debug.Log($"Car Momentum: BLOCKED direction change. Must brake to zero momentum first. Similarity: {directionSimilarity:F2}");
+                     }
                 }
             }
         }
@@ -473,82 +424,7 @@ namespace MoreMountains.TopDownEngine
             }
         }
 
-        /// <summary>
-        /// Gets the drunk intensity based on beer level
-        /// </summary>
-        /// <param name="beerLevel">Current beer level (0-100)</param>
-        /// <returns>Drunk intensity (0-1)</returns>
-        protected virtual float GetDrunkIntensity(float beerLevel)
-        {
-            // Higher beer level = more drunk = more intense effects
-            // Beer level 0-33% = Zone 1 (sober) = 0 intensity
-            // Beer level 34-66% = Zone 2 (tipsy) = 0.3-0.6 intensity  
-            // Beer level 67-100% = Zone 3 (drunk) = 0.7-1.0 intensity
-            if (beerLevel <= 33f)
-            {
-                return 0f; // Sober
-            }
-            else if (beerLevel <= 66f)
-            {
-                return Mathf.Lerp(0.3f, 0.6f, (beerLevel - 33f) / 33f); // Tipsy
-            }
-            else
-            {
-                return Mathf.Lerp(0.7f, 1.0f, (beerLevel - 66f) / 34f); // Drunk
-            }
-        }
 
-        /// <summary>
-        /// Applies drunk movement effects to the input (independent of momentum system)
-        /// </summary>
-        /// <param name="drunkIntensity">How drunk the character is (0-1)</param>
-        /// <param name="originalInput">The original input before momentum processing</param>
-        protected virtual void ApplyDrunkEffects(float drunkIntensity, Vector2 originalInput)
-        {
-            // Apply wobble effects independently of momentum system
-            // This ensures wobble works even when momentum blocks input
-            
-            // Pure sinusoidal wobble - no random effects that cause direction changes
-            float wobbleX = Mathf.Sin(Time.time * DrunkWobbleSpeed) * DrunkWobbleAmount * drunkIntensity;
-            wobbleX += Mathf.Sin(Time.time * DrunkWobbleSpeed * 0.7f) * DrunkWobbleAmount * 0.5f * drunkIntensity;
-            
-            float wobbleY = Mathf.Cos(Time.time * DrunkWobbleSpeed * 1.3f) * DrunkWobbleAmount * drunkIntensity;
-            wobbleY += Mathf.Cos(Time.time * DrunkWobbleSpeed * 0.9f) * DrunkWobbleAmount * 0.6f * drunkIntensity;
-            
-            // Add smooth sway effect with sinusoidal movement
-            float swayX = Mathf.Sin(Time.time * DrunkSwaySpeed) * DrunkSwayAmount * drunkIntensity;
-            swayX += Mathf.Sin(Time.time * DrunkSwaySpeed * 1.5f) * DrunkSwayAmount * 0.4f * drunkIntensity;
-            
-            float swayY = Mathf.Cos(Time.time * DrunkSwaySpeed * 0.8f) * DrunkSwayAmount * 0.3f * drunkIntensity;
-            
-            // NO random effects - only pure sinusoidal wobble
-            // This prevents unwanted direction changes while maintaining drunk visual effects
-            
-            // Apply smooth sinusoidal wobble to the input (independent of momentum blocking)
-            Vector2 drunkOffset = new Vector2(
-                wobbleX + swayX,
-                wobbleY + swayY
-            );
-            
-            // If momentum blocked input, apply minimal wobble for visual effect only
-            if (_momentumBlockedInput)
-            {
-                drunkOffset *= 0.1f; // Reduce wobble to 10% when blocked
-                if (ShowDebugInfo)
-                {
-                    Debug.Log($"Wobble Reduced: Momentum blocked input, wobble scaled to 10%");
-                }
-            }
-            
-            // Apply wobble to the current input (after momentum processing)
-            _normalizedInput += drunkOffset;
-            _normalizedInput = Vector2.ClampMagnitude(_normalizedInput, 1f);
-            
-            if (ShowDebugInfo)
-            {
-                Debug.Log($"Drunk Effects: Intensity {drunkIntensity:F2}, Offset {drunkOffset}, Original Input: {originalInput}");
-            }
-        }
 
         /// <summary>
         /// Handles beer zone change events from the BeerManager
@@ -652,11 +528,6 @@ namespace MoreMountains.TopDownEngine
                 GUI.Label(new Rect(10, 110, 300, 20), $"Current Speed: {_controller.CurrentMovement.magnitude:F2}");
                 GUI.Label(new Rect(10, 130, 300, 20), $"Momentum Threshold: {MomentumThreshold:F2}");
                 
-                if (BeerManager.HasInstance)
-                {
-                    float drunkIntensity = GetDrunkIntensity(BeerManager.Instance.CurrentBeer);
-                    GUI.Label(new Rect(10, 150, 300, 20), $"Drunk Intensity: {drunkIntensity:F2}");
-                }
                 
                 GUI.Label(new Rect(10, 170, 300, 20), "Press 1, 2, or 3 to switch stages");
                 
