@@ -124,6 +124,41 @@ namespace MoreMountains.TopDownEngine
         protected float _momentumStrength = 0f;
         protected float _horizontalMomentum = 0f;
         protected float _verticalMomentum = 0f;
+        
+        [Header("Car-Like Momentum Settings")]
+        
+        /// <summary>
+        /// How much momentum blocks direction changes in Stage 2 (like a car)
+        /// </summary>
+        [Tooltip("How much momentum blocks direction changes in Stage 2 (like a car)")]
+        public float Stage2CarMomentum = 0.8f;
+        
+        /// <summary>
+        /// How much momentum blocks direction changes in Stage 3 (like a car)
+        /// </summary>
+        [Tooltip("How much momentum blocks direction changes in Stage 3 (like a car)")]
+        public float Stage3CarMomentum = 0.95f;
+        
+        /// <summary>
+        /// Minimum speed threshold before momentum blocking kicks in
+        /// </summary>
+        [Tooltip("Minimum speed threshold before momentum blocking kicks in")]
+        public float MomentumThreshold = 0.2f;
+        
+        /// <summary>
+        /// How fast momentum builds up when moving
+        /// </summary>
+        [Tooltip("How fast momentum builds up when moving")]
+        public float MomentumBuildRate = 3f;
+        
+        /// <summary>
+        /// How fast momentum decays when not moving
+        /// </summary>
+        [Tooltip("How fast momentum decays when not moving")]
+        public float MomentumDecayRate = 2f;
+        
+        protected Vector2 _carMomentum = Vector2.zero;
+        protected Vector2 _lastVelocity = Vector2.zero;
 
         protected override void Initialization()
         {
@@ -217,98 +252,10 @@ namespace MoreMountains.TopDownEngine
             
             _normalizedInput = _currentInput.normalized;
 
-            // Apply momentum system for stages 2 and 3
+            // Apply car-like momentum system for stages 2 and 3
             if (CurrentStage != MovementStage.Stage1_Normal)
             {
-                // Get current velocity components
-                float currentHorizontalVelocity = _controller.CurrentMovement.x;
-                float currentVerticalVelocity = _controller.CurrentMovement.z;
-                
-                // Update horizontal momentum
-                if (Mathf.Abs(currentHorizontalVelocity) > 0.1f)
-                {
-                    _horizontalMomentum = Mathf.Clamp01(Mathf.Abs(currentHorizontalVelocity) / MovementSpeed);
-                }
-                else
-                {
-                    _horizontalMomentum = Mathf.Lerp(_horizontalMomentum, 0f, GetCurrentStageDeceleration() * Time.deltaTime);
-                }
-                
-                // Update vertical momentum
-                if (Mathf.Abs(currentVerticalVelocity) > 0.1f)
-                {
-                    _verticalMomentum = Mathf.Clamp01(Mathf.Abs(currentVerticalVelocity) / MovementSpeed);
-                }
-                else
-                {
-                    _verticalMomentum = Mathf.Lerp(_verticalMomentum, 0f, GetCurrentStageDeceleration() * Time.deltaTime);
-                }
-                
-                // Apply momentum blocking - IMPOSSIBLE to change direction without canceling momentum
-                if (_normalizedInput.magnitude > 0.1f)
-                {
-                    Vector2 currentVelocity = new Vector2(currentHorizontalVelocity, currentVerticalVelocity);
-                    float currentSpeed = currentVelocity.magnitude;
-                    
-                    // Update overall momentum strength
-                    _momentumStrength = Mathf.Clamp01(currentSpeed / MovementSpeed);
-                    
-                    // Only apply momentum blocking if there's significant movement
-                    if (currentSpeed > 0.1f)
-                    {
-                        Vector2 normalizedVelocity = currentVelocity.normalized;
-                        float directionDifference = Vector2.Dot(normalizedVelocity, _normalizedInput);
-                        
-                        // Check if input is opposite to current velocity (canceling momentum)
-                        bool isOppositeDirection = directionDifference < -0.3f;
-                        
-                        // Check if input is same direction as current velocity (continuing momentum)
-                        bool isSameDirection = directionDifference > 0.7f;
-                        
-                        // Check if input is pure vertical or pure horizontal (allow these)
-                        bool isPureVertical = Mathf.Abs(_normalizedInput.x) < 0.1f && Mathf.Abs(_normalizedInput.y) > 0.1f;
-                        bool isPureHorizontal = Mathf.Abs(_normalizedInput.x) > 0.1f && Mathf.Abs(_normalizedInput.y) < 0.1f;
-                        
-                        // Check if current movement is pure vertical or pure horizontal
-                        bool isCurrentPureVertical = Mathf.Abs(currentVelocity.x) < 0.1f && Mathf.Abs(currentVelocity.y) > 0.1f;
-                        bool isCurrentPureHorizontal = Mathf.Abs(currentVelocity.x) > 0.1f && Mathf.Abs(currentVelocity.y) < 0.1f;
-                        
-                        if (isOppositeDirection)
-                        {
-                            // Opposite input - allow it to cancel momentum
-                            if (ShowDebugInfo)
-                            {
-                                Debug.Log($"Momentum: Canceling momentum with opposite input. Direction diff: {directionDifference:F2}");
-                            }
-                        }
-                        else if (isSameDirection)
-                        {
-                            // Same direction - allow it to continue building momentum
-                            if (ShowDebugInfo)
-                            {
-                                Debug.Log($"Momentum: Continuing momentum in same direction. Direction diff: {directionDifference:F2}");
-                            }
-                        }
-                        else if ((isPureVertical && isCurrentPureHorizontal) || (isPureHorizontal && isCurrentPureVertical))
-                        {
-                            // Pure perpendicular movement (vertical to horizontal or vice versa) - ALLOW
-                            if (ShowDebugInfo)
-                            {
-                                Debug.Log($"Momentum: Allowing pure perpendicular movement. Direction diff: {directionDifference:F2}");
-                            }
-                        }
-                        else
-                        {
-                            // Diagonal or similar direction - COMPLETELY BLOCK input
-                            _normalizedInput = Vector2.zero;
-                            
-                            if (ShowDebugInfo)
-                            {
-                                Debug.Log($"Momentum: BLOCKED diagonal direction change. Must cancel momentum first. Direction diff: {directionDifference:F2}");
-                            }
-                        }
-                    }
-                }
+                ApplyCarLikeMomentum();
             }
 
             // Apply drunk movement effects based on beer level
@@ -410,6 +357,167 @@ namespace MoreMountains.TopDownEngine
                     return Stage2MomentumResistance;
                 case MovementStage.Stage3_HighDrift:
                     return Stage3MomentumResistance;
+                default:
+                    return 0f;
+            }
+        }
+
+        /// <summary>
+        /// Applies car-like momentum system - character must stop before changing direction
+        /// </summary>
+        protected virtual void ApplyCarLikeMomentum()
+        {
+            // Get current velocity components
+            float currentHorizontalVelocity = _controller.CurrentMovement.x;
+            float currentVerticalVelocity = _controller.CurrentMovement.z;
+            
+            // Update horizontal car momentum
+            if (Mathf.Abs(currentHorizontalVelocity) > MomentumThreshold)
+            {
+                float horizontalDirection = Mathf.Sign(currentHorizontalVelocity);
+                _horizontalMomentum = Mathf.Lerp(_horizontalMomentum, horizontalDirection, 
+                    MomentumBuildRate * Time.deltaTime);
+            }
+            else
+            {
+                // Check if player is giving opposite input (braking)
+                bool isBrakingHorizontally = Mathf.Abs(_normalizedInput.x) > 0.1f && 
+                    Mathf.Abs(_horizontalMomentum) > 0.1f && 
+                    Mathf.Sign(_normalizedInput.x) == -Mathf.Sign(_horizontalMomentum);
+                
+                if (isBrakingHorizontally)
+                {
+                    // Player is braking - decay horizontal momentum
+                    _horizontalMomentum = Mathf.Lerp(_horizontalMomentum, 0f, 
+                        MomentumDecayRate * Time.deltaTime);
+                }
+                else if (Mathf.Abs(currentHorizontalVelocity) < 0.05f)
+                {
+                    // Only decay when completely stopped and not braking
+                    _horizontalMomentum = Mathf.Lerp(_horizontalMomentum, 0f, 
+                        MomentumDecayRate * Time.deltaTime);
+                }
+            }
+            
+            // Update vertical car momentum
+            if (Mathf.Abs(currentVerticalVelocity) > MomentumThreshold)
+            {
+                float verticalDirection = Mathf.Sign(currentVerticalVelocity);
+                _verticalMomentum = Mathf.Lerp(_verticalMomentum, verticalDirection, 
+                    MomentumBuildRate * Time.deltaTime);
+            }
+            else
+            {
+                // Check if player is giving opposite input (braking)
+                bool isBrakingVertically = Mathf.Abs(_normalizedInput.y) > 0.1f && 
+                    Mathf.Abs(_verticalMomentum) > 0.1f && 
+                    Mathf.Sign(_normalizedInput.y) == -Mathf.Sign(_verticalMomentum);
+                
+                if (isBrakingVertically)
+                {
+                    // Player is braking - decay vertical momentum
+                    _verticalMomentum = Mathf.Lerp(_verticalMomentum, 0f, 
+                        MomentumDecayRate * Time.deltaTime);
+                }
+                else if (Mathf.Abs(currentVerticalVelocity) < 0.05f)
+                {
+                    // Only decay when completely stopped and not braking
+                    _verticalMomentum = Mathf.Lerp(_verticalMomentum, 0f, 
+                        MomentumDecayRate * Time.deltaTime);
+                }
+            }
+            
+            // Apply car-like momentum blocking for horizontal movement
+            if (Mathf.Abs(_horizontalMomentum) > 0.1f)
+            {
+                float horizontalInputDirection = Mathf.Sign(_normalizedInput.x);
+                float horizontalMomentumDirection = Mathf.Sign(_horizontalMomentum);
+                
+                // Only allow same direction or opposite direction (braking)
+                if (Mathf.Abs(_normalizedInput.x) > 0.1f)
+                {
+                    if (horizontalInputDirection == horizontalMomentumDirection)
+                    {
+                        // Same horizontal direction - allow it to continue
+                        if (ShowDebugInfo)
+                        {
+                            Debug.Log($"Car Momentum: Horizontal continuing. Input: {horizontalInputDirection}, Momentum: {horizontalMomentumDirection}");
+                        }
+                    }
+                    else if (horizontalInputDirection == -horizontalMomentumDirection)
+                    {
+                        // Opposite horizontal direction - BLOCK input but allow momentum decay
+                        _normalizedInput.x = 0f;
+                        if (ShowDebugInfo)
+                        {
+                            Debug.Log($"Car Momentum: Horizontal braking (input blocked). Momentum will decay. Input: {horizontalInputDirection}, Momentum: {horizontalMomentumDirection}");
+                        }
+                    }
+                    else
+                    {
+                        // Any other direction - BLOCK horizontal input completely
+                        _normalizedInput.x = 0f;
+                        if (ShowDebugInfo)
+                        {
+                            Debug.Log($"Car Momentum: BLOCKED horizontal direction change. Must brake to zero momentum first. Input: {horizontalInputDirection}, Momentum: {horizontalMomentumDirection}");
+                        }
+                    }
+                }
+            }
+            
+            // Apply car-like momentum blocking for vertical movement
+            if (Mathf.Abs(_verticalMomentum) > 0.1f)
+            {
+                float verticalInputDirection = Mathf.Sign(_normalizedInput.y);
+                float verticalMomentumDirection = Mathf.Sign(_verticalMomentum);
+                
+                // Only allow same direction or opposite direction (braking)
+                if (Mathf.Abs(_normalizedInput.y) > 0.1f)
+                {
+                    if (verticalInputDirection == verticalMomentumDirection)
+                    {
+                        // Same vertical direction - allow it to continue
+                        if (ShowDebugInfo)
+                        {
+                            Debug.Log($"Car Momentum: Vertical continuing. Input: {verticalInputDirection}, Momentum: {verticalMomentumDirection}");
+                        }
+                    }
+                    else if (verticalInputDirection == -verticalMomentumDirection)
+                    {
+                        // Opposite vertical direction - BLOCK input but allow momentum decay
+                        _normalizedInput.y = 0f;
+                        if (ShowDebugInfo)
+                        {
+                            Debug.Log($"Car Momentum: Vertical braking (input blocked). Momentum will decay. Input: {verticalInputDirection}, Momentum: {verticalMomentumDirection}");
+                        }
+                    }
+                    else
+                    {
+                        // Any other direction - BLOCK vertical input completely
+                        _normalizedInput.y = 0f;
+                        if (ShowDebugInfo)
+                        {
+                            Debug.Log($"Car Momentum: BLOCKED vertical direction change. Must brake to zero momentum first. Input: {verticalInputDirection}, Momentum: {verticalMomentumDirection}");
+                        }
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets the car momentum strength for the current stage
+        /// </summary>
+        /// <returns>The car momentum strength for the current stage</returns>
+        protected virtual float GetCarMomentumStrength()
+        {
+            switch (CurrentStage)
+            {
+                case MovementStage.Stage1_Normal:
+                    return 0f; // No car momentum in stage 1
+                case MovementStage.Stage2_Drift:
+                    return Stage2CarMomentum;
+                case MovementStage.Stage3_HighDrift:
+                    return Stage3CarMomentum;
                 default:
                     return 0f;
             }
@@ -581,23 +689,24 @@ namespace MoreMountains.TopDownEngine
             {
                 GUI.Label(new Rect(10, 10, 300, 20), $"Movement Stage: {CurrentStage}");
                 GUI.Label(new Rect(10, 30, 300, 20), $"Current Deceleration: {GetCurrentStageDeceleration()}");
-                GUI.Label(new Rect(10, 50, 300, 20), $"Momentum Resistance: {GetMomentumResistance():F2}");
-                GUI.Label(new Rect(10, 70, 300, 20), $"Drift Influence: {GetMomentumResistance() * DriftInfluence:F2}");
-                GUI.Label(new Rect(10, 90, 300, 20), $"Current Speed: {_controller.CurrentMovement.magnitude:F2}");
-                GUI.Label(new Rect(10, 110, 300, 20), $"Momentum Strength: {_momentumStrength:F2}");
+                GUI.Label(new Rect(10, 50, 300, 20), $"Car Momentum Strength: {GetCarMomentumStrength():F2}");
+                GUI.Label(new Rect(10, 70, 300, 20), $"Horizontal Momentum: {_horizontalMomentum:F2}");
+                GUI.Label(new Rect(10, 90, 300, 20), $"Vertical Momentum: {_verticalMomentum:F2}");
+                GUI.Label(new Rect(10, 110, 300, 20), $"Current Speed: {_controller.CurrentMovement.magnitude:F2}");
+                GUI.Label(new Rect(10, 130, 300, 20), $"Momentum Threshold: {MomentumThreshold:F2}");
                 
                 if (BeerManager.HasInstance)
                 {
                     float drunkIntensity = GetDrunkIntensity(BeerManager.Instance.CurrentBeer);
-                    GUI.Label(new Rect(10, 130, 300, 20), $"Drunk Intensity: {drunkIntensity:F2}");
+                    GUI.Label(new Rect(10, 150, 300, 20), $"Drunk Intensity: {drunkIntensity:F2}");
                 }
                 
-                GUI.Label(new Rect(10, 150, 300, 20), "Press 1, 2, or 3 to switch stages");
+                GUI.Label(new Rect(10, 170, 300, 20), "Press 1, 2, or 3 to switch stages");
                 
                 if (BeerManager.HasInstance)
                 {
-                    GUI.Label(new Rect(10, 170, 300, 20), $"Beer Level: {BeerManager.Instance.CurrentBeer:F1}%");
-                    GUI.Label(new Rect(10, 190, 300, 20), $"Beer Zone: {BeerManager.Instance.CurrentZone}");
+                    GUI.Label(new Rect(10, 190, 300, 20), $"Beer Level: {BeerManager.Instance.CurrentBeer:F1}%");
+                    GUI.Label(new Rect(10, 210, 300, 20), $"Beer Zone: {BeerManager.Instance.CurrentZone}");
                 }
             }
         }
