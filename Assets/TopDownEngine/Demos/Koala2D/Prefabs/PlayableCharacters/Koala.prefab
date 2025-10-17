@@ -10072,7 +10072,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1498750440386690}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 69614a4a3cfd06d4e8388acafdb774bd, type: 3}
+  m_Script: {fileID: 11500000, guid: a1b2c3d4e5f6789012345678901234ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   AbilityStartSfx: {fileID: 0}
@@ -10099,6 +10099,11 @@ MonoBehaviour:
   - {fileID: 198815970869915398}
   TouchTheGroundParticles: []
   TouchTheGroundSfx: []
+  CurrentStage: 1
+  Stage1Deceleration: 10
+  Stage2Deceleration: 4
+  Stage3Deceleration: 1.5
+  ShowDebugInfo: 1
 --- !u!114 &114079283237680582
 MonoBehaviour:
   m_ObjectHideFlags: 0
