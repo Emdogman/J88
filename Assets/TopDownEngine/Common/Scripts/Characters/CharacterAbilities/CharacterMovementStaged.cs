@@ -155,7 +155,7 @@ namespace MoreMountains.TopDownEngine
         /// How fast momentum decays when not moving
         /// </summary>
         [Tooltip("How fast momentum decays when not moving")]
-        public float MomentumDecayRate = 100f;
+        public float MomentumDecayRate = 200f;
         
         protected Vector2 _carMomentum = Vector2.zero;
         protected Vector2 _lastVelocity = Vector2.zero;
@@ -382,8 +382,15 @@ namespace MoreMountains.TopDownEngine
             if (isBraking)
             {
                 // Player is braking - decay momentum immediately and continuously
+                // Stage 3 (very drunk) gets faster control return
+                float decayMultiplier = (CurrentStage == MovementStage.Stage3_HighDrift) ? 3f : 1f;
                 _currentMomentumDirection = Vector2.Lerp(_currentMomentumDirection, Vector2.zero, 
-                    MomentumDecayRate * Time.deltaTime);
+                    MomentumDecayRate * decayMultiplier * Time.deltaTime);
+                
+                if (ShowDebugInfo && CurrentStage == MovementStage.Stage3_HighDrift)
+                {
+                    Debug.Log($"Stage 3 Fast Decay: Multiplier {decayMultiplier}x, Effective Rate: {MomentumDecayRate * decayMultiplier}");
+                }
             }
             else if (currentSpeed > MomentumThreshold)
             {
