@@ -130,6 +130,32 @@ namespace MoreMountains.TopDownEngine
         protected Vector2 _lastVelocity = Vector2.zero;
         protected Vector2 _currentMomentumDirection = Vector2.zero;
 
+        [Header("Drunk Wobble Settings")]
+
+        /// <summary>
+        /// Enable drunk wobble effects in Stage 3
+        /// </summary>
+        [Tooltip("Enable drunk wobble effects in Stage 3")]
+        public bool EnableDrunkWobble = true;
+
+        /// <summary>
+        /// How much the input wobbles when drunk (0-1)
+        /// </summary>
+        [Tooltip("How much the input wobbles when drunk (0-1)")]
+        public float DrunkWobbleAmount = 0.15f;
+
+        /// <summary>
+        /// Primary wobble frequency (Hz)
+        /// </summary>
+        [Tooltip("Primary wobble frequency (Hz)")]
+        public float DrunkWobbleSpeed = 3f;
+
+        /// <summary>
+        /// Secondary wobble frequency for complexity (Hz)
+        /// </summary>
+        [Tooltip("Secondary wobble frequency for complexity (Hz)")]
+        public float DrunkWobbleSpeed2 = 5f;
+
         protected override void Initialization()
         {
             base.Initialization();
@@ -229,7 +255,11 @@ namespace MoreMountains.TopDownEngine
                 ApplyCarLikeMomentum();
             }
 
-             // Drunk movement effects removed - no wobble
+            // Apply drunk wobble effects in Stage 3 only (after momentum system)
+            if (EnableDrunkWobble && CurrentStage == MovementStage.Stage3_HighDrift)
+            {
+                ApplyDrunkWobble();
+            }
 
             float interpolationSpeed = 1f;
             
@@ -386,22 +416,81 @@ namespace MoreMountains.TopDownEngine
                 }
                 else if (directionSimilarity < -0.3f)
                 {
-                     // Opposite direction - BLOCK input but allow momentum decay
-                     _normalizedInput = Vector2.zero;
+                     // Opposite direction - apply strong resistance but allow some movement
+                     float momentumStrength = _currentMomentumDirection.magnitude;
+                     float resistance = Mathf.Lerp(0.7f, 0.9f, momentumStrength);
+                     _normalizedInput *= (1f - resistance);
+                     
+                     // Decay momentum when braking
+                     _currentMomentumDirection = Vector2.Lerp(_currentMomentumDirection, Vector2.zero, 
+                         MomentumDecayRate * Time.deltaTime);
+                     
                      if (ShowDebugInfo)
                      {
-                         Debug.Log($"Car Momentum: Braking (input blocked). Momentum will decay. Similarity: {directionSimilarity:F2}");
+                         Debug.Log($"Car Momentum: Braking with resistance {(1f - resistance):P0}. Similarity: {directionSimilarity:F2}");
                      }
                 }
                 else
                 {
-                     // Different direction - BLOCK input completely
-                     _normalizedInput = Vector2.zero;
+                     // Different direction - apply sliding resistance
+                     float momentumStrength = _currentMomentumDirection.magnitude;
+                     float resistance = Mathf.Lerp(0.5f, 0.8f, momentumStrength);
+                     _normalizedInput *= (1f - resistance);
+                     
+                     // Slow momentum decay for sliding
+                     _currentMomentumDirection = Vector2.Lerp(_currentMomentumDirection, Vector2.zero, 
+                         MomentumDecayRate * 0.3f * Time.deltaTime);
+                     
                      if (ShowDebugInfo)
                      {
-                         Debug.Log($"Car Momentum: BLOCKED direction change. Must brake to zero momentum first. Similarity: {directionSimilarity:F2}");
+                         Debug.Log($"Car Momentum: Sliding with resistance {(1f - resistance):P0}. Similarity: {directionSimilarity:F2}");
                      }
                 }
+            }
+            else if (_currentMomentumDirection.magnitude > 0.1f)
+            {
+                // No input but momentum exists - let it decay naturally
+                _currentMomentumDirection *= 0.95f; // 5% decay per frame
+                
+                if (_currentMomentumDirection.magnitude < 0.1f)
+                {
+                    _currentMomentumDirection = Vector2.zero;
+                    if (ShowDebugInfo)
+                    {
+                        Debug.Log("Car Momentum: Natural decay completed - momentum zeroed");
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Applies drunk wobble effects to movement input (Stage 3 only)
+        /// Uses pure sinusoidal oscillation for smooth, predictable wobble
+        /// </summary>
+        protected virtual void ApplyDrunkWobble()
+        {
+            if (_normalizedInput.magnitude < 0.1f)
+            {
+                // No wobble when not moving
+                return;
+            }
+            
+            // Pure horizontal sinusoidal wobble only (no vertical movement)
+            float wobbleX = Mathf.Sin(Time.time * DrunkWobbleSpeed) * DrunkWobbleAmount;
+            wobbleX += Mathf.Sin(Time.time * DrunkWobbleSpeed2 * 0.7f) * DrunkWobbleAmount * 0.5f;
+            
+            // No vertical wobble - only horizontal sway
+            float wobbleY = 0f;
+            
+            Vector2 wobbleOffset = new Vector2(wobbleX, wobbleY);
+            
+            // Apply wobble to normalized input
+            _normalizedInput += wobbleOffset;
+            _normalizedInput = Vector2.ClampMagnitude(_normalizedInput, 1f);
+            
+            if (ShowDebugInfo)
+            {
+                Debug.Log($"Drunk Wobble Applied: Offset {wobbleOffset}, Final Input: {_normalizedInput}");
             }
         }
 
@@ -528,6 +617,10 @@ namespace MoreMountains.TopDownEngine
                 GUI.Label(new Rect(10, 110, 300, 20), $"Current Speed: {_controller.CurrentMovement.magnitude:F2}");
                 GUI.Label(new Rect(10, 130, 300, 20), $"Momentum Threshold: {MomentumThreshold:F2}");
                 
+                if (EnableDrunkWobble && CurrentStage == MovementStage.Stage3_HighDrift)
+                {
+                    GUI.Label(new Rect(10, 150, 300, 20), $"Drunk Wobble: ACTIVE");
+                }
                 
                 GUI.Label(new Rect(10, 170, 300, 20), "Press 1, 2, or 3 to switch stages");
                 
