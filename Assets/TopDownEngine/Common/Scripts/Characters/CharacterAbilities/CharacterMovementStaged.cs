@@ -61,6 +61,70 @@ namespace MoreMountains.TopDownEngine
         [Tooltip("Whether to use the beer system for automatic stage switching")]
         public bool UseBeerSystem = true;
 
+        [Header("Momentum Settings")]
+
+        /// <summary>
+        /// Momentum resistance for Stage 2 (0 = no resistance, 1 = full resistance)
+        /// </summary>
+        [Tooltip("Momentum resistance for Stage 2 (0 = no resistance, 1 = full resistance)")]
+        public float Stage2MomentumResistance = 0.5f;
+
+        /// <summary>
+        /// Momentum resistance for Stage 3 (0 = no resistance, 1 = full resistance)
+        /// </summary>
+        [Tooltip("Momentum resistance for Stage 3 (0 = no resistance, 1 = full resistance)")]
+        public float Stage3MomentumResistance = 0.8f;
+
+        /// <summary>
+        /// How quickly the character can turn when momentum is high
+        /// </summary>
+        [Tooltip("How quickly the character can turn when momentum is high")]
+        public float DirectionChangeDamping = 0.3f;
+
+        /// <summary>
+        /// How much drift affects direction changes while moving
+        /// </summary>
+        [Tooltip("How much drift affects direction changes while moving")]
+        public float DriftInfluence = 0.5f;
+
+        [Header("Drunk Movement Settings")]
+
+        /// <summary>
+        /// How much the character wobbles when drunk
+        /// </summary>
+        [Tooltip("How much the character wobbles when drunk")]
+        public float DrunkWobbleAmount = 0.8f;
+
+        /// <summary>
+        /// How fast the wobble oscillates
+        /// </summary>
+        [Tooltip("How fast the wobble oscillates")]
+        public float DrunkWobbleSpeed = 7f;
+
+        /// <summary>
+        /// How much random direction changes occur when drunk
+        /// </summary>
+        [Tooltip("How much random direction changes occur when drunk")]
+        public float DrunkRandomness = 0.4f;
+
+        /// <summary>
+        /// How much the character sways side to side when drunk
+        /// </summary>
+        [Tooltip("How much the character sways side to side when drunk")]
+        public float DrunkSwayAmount = 0.6f;
+
+        /// <summary>
+        /// How fast the sway oscillates
+        /// </summary>
+        [Tooltip("How fast the sway oscillates")]
+        public float DrunkSwaySpeed = 4f;
+
+        protected Vector2 _previousMovementDirection = Vector2.zero;
+        protected Vector2 _currentMomentum = Vector2.zero;
+        protected float _momentumStrength = 0f;
+        protected float _horizontalMomentum = 0f;
+        protected float _verticalMomentum = 0f;
+
         protected override void Initialization()
         {
             base.Initialization();
@@ -153,6 +217,112 @@ namespace MoreMountains.TopDownEngine
             
             _normalizedInput = _currentInput.normalized;
 
+            // Apply momentum system for stages 2 and 3
+            if (CurrentStage != MovementStage.Stage1_Normal)
+            {
+                // Get current velocity components
+                float currentHorizontalVelocity = _controller.CurrentMovement.x;
+                float currentVerticalVelocity = _controller.CurrentMovement.z;
+                
+                // Update horizontal momentum
+                if (Mathf.Abs(currentHorizontalVelocity) > 0.1f)
+                {
+                    _horizontalMomentum = Mathf.Clamp01(Mathf.Abs(currentHorizontalVelocity) / MovementSpeed);
+                }
+                else
+                {
+                    _horizontalMomentum = Mathf.Lerp(_horizontalMomentum, 0f, GetCurrentStageDeceleration() * Time.deltaTime);
+                }
+                
+                // Update vertical momentum
+                if (Mathf.Abs(currentVerticalVelocity) > 0.1f)
+                {
+                    _verticalMomentum = Mathf.Clamp01(Mathf.Abs(currentVerticalVelocity) / MovementSpeed);
+                }
+                else
+                {
+                    _verticalMomentum = Mathf.Lerp(_verticalMomentum, 0f, GetCurrentStageDeceleration() * Time.deltaTime);
+                }
+                
+                // Apply momentum blocking - IMPOSSIBLE to change direction without canceling momentum
+                if (_normalizedInput.magnitude > 0.1f)
+                {
+                    Vector2 currentVelocity = new Vector2(currentHorizontalVelocity, currentVerticalVelocity);
+                    float currentSpeed = currentVelocity.magnitude;
+                    
+                    // Update overall momentum strength
+                    _momentumStrength = Mathf.Clamp01(currentSpeed / MovementSpeed);
+                    
+                    // Only apply momentum blocking if there's significant movement
+                    if (currentSpeed > 0.1f)
+                    {
+                        Vector2 normalizedVelocity = currentVelocity.normalized;
+                        float directionDifference = Vector2.Dot(normalizedVelocity, _normalizedInput);
+                        
+                        // Check if input is opposite to current velocity (canceling momentum)
+                        bool isOppositeDirection = directionDifference < -0.3f;
+                        
+                        // Check if input is same direction as current velocity (continuing momentum)
+                        bool isSameDirection = directionDifference > 0.7f;
+                        
+                        // Check if input is pure vertical or pure horizontal (allow these)
+                        bool isPureVertical = Mathf.Abs(_normalizedInput.x) < 0.1f && Mathf.Abs(_normalizedInput.y) > 0.1f;
+                        bool isPureHorizontal = Mathf.Abs(_normalizedInput.x) > 0.1f && Mathf.Abs(_normalizedInput.y) < 0.1f;
+                        
+                        // Check if current movement is pure vertical or pure horizontal
+                        bool isCurrentPureVertical = Mathf.Abs(currentVelocity.x) < 0.1f && Mathf.Abs(currentVelocity.y) > 0.1f;
+                        bool isCurrentPureHorizontal = Mathf.Abs(currentVelocity.x) > 0.1f && Mathf.Abs(currentVelocity.y) < 0.1f;
+                        
+                        if (isOppositeDirection)
+                        {
+                            // Opposite input - allow it to cancel momentum
+                            if (ShowDebugInfo)
+                            {
+                                Debug.Log($"Momentum: Canceling momentum with opposite input. Direction diff: {directionDifference:F2}");
+                            }
+                        }
+                        else if (isSameDirection)
+                        {
+                            // Same direction - allow it to continue building momentum
+                            if (ShowDebugInfo)
+                            {
+                                Debug.Log($"Momentum: Continuing momentum in same direction. Direction diff: {directionDifference:F2}");
+                            }
+                        }
+                        else if ((isPureVertical && isCurrentPureHorizontal) || (isPureHorizontal && isCurrentPureVertical))
+                        {
+                            // Pure perpendicular movement (vertical to horizontal or vice versa) - ALLOW
+                            if (ShowDebugInfo)
+                            {
+                                Debug.Log($"Momentum: Allowing pure perpendicular movement. Direction diff: {directionDifference:F2}");
+                            }
+                        }
+                        else
+                        {
+                            // Diagonal or similar direction - COMPLETELY BLOCK input
+                            _normalizedInput = Vector2.zero;
+                            
+                            if (ShowDebugInfo)
+                            {
+                                Debug.Log($"Momentum: BLOCKED diagonal direction change. Must cancel momentum first. Direction diff: {directionDifference:F2}");
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Apply drunk movement effects based on beer level
+            if (UseBeerSystem && BeerManager.HasInstance)
+            {
+                float beerLevel = BeerManager.Instance.CurrentBeer;
+                float drunkIntensity = GetDrunkIntensity(beerLevel);
+                
+                if (drunkIntensity > 0.1f)
+                {
+                    ApplyDrunkEffects(drunkIntensity);
+                }
+            }
+
             float interpolationSpeed = 1f;
             
             if ((Acceleration == 0) || (Deceleration == 0))
@@ -223,6 +393,95 @@ namespace MoreMountains.TopDownEngine
                     return Stage3Deceleration;
                 default:
                     return Stage1Deceleration;
+            }
+        }
+
+        /// <summary>
+        /// Gets the momentum resistance value for the current stage
+        /// </summary>
+        /// <returns>The momentum resistance value for the current stage</returns>
+        protected virtual float GetMomentumResistance()
+        {
+            switch (CurrentStage)
+            {
+                case MovementStage.Stage1_Normal:
+                    return 0f; // No momentum resistance in stage 1
+                case MovementStage.Stage2_Drift:
+                    return Stage2MomentumResistance;
+                case MovementStage.Stage3_HighDrift:
+                    return Stage3MomentumResistance;
+                default:
+                    return 0f;
+            }
+        }
+
+        /// <summary>
+        /// Gets the drunk intensity based on beer level
+        /// </summary>
+        /// <param name="beerLevel">Current beer level (0-100)</param>
+        /// <returns>Drunk intensity (0-1)</returns>
+        protected virtual float GetDrunkIntensity(float beerLevel)
+        {
+            // Higher beer level = more drunk = more intense effects
+            // Beer level 0-33% = Zone 1 (sober) = 0 intensity
+            // Beer level 34-66% = Zone 2 (tipsy) = 0.3-0.6 intensity  
+            // Beer level 67-100% = Zone 3 (drunk) = 0.7-1.0 intensity
+            if (beerLevel <= 33f)
+            {
+                return 0f; // Sober
+            }
+            else if (beerLevel <= 66f)
+            {
+                return Mathf.Lerp(0.3f, 0.6f, (beerLevel - 33f) / 33f); // Tipsy
+            }
+            else
+            {
+                return Mathf.Lerp(0.7f, 1.0f, (beerLevel - 66f) / 34f); // Drunk
+            }
+        }
+
+        /// <summary>
+        /// Applies drunk movement effects to the input
+        /// </summary>
+        /// <param name="drunkIntensity">How drunk the character is (0-1)</param>
+        protected virtual void ApplyDrunkEffects(float drunkIntensity)
+        {
+            if (_normalizedInput.magnitude > 0.1f)
+            {
+                // Add complex wobble effect with multiple frequencies
+                float wobbleX = Mathf.Sin(Time.time * DrunkWobbleSpeed) * DrunkWobbleAmount * drunkIntensity;
+                wobbleX += Mathf.Sin(Time.time * DrunkWobbleSpeed * 0.7f) * DrunkWobbleAmount * 0.5f * drunkIntensity;
+                
+                float wobbleY = Mathf.Cos(Time.time * DrunkWobbleSpeed * 1.3f) * DrunkWobbleAmount * drunkIntensity;
+                wobbleY += Mathf.Cos(Time.time * DrunkWobbleSpeed * 0.9f) * DrunkWobbleAmount * 0.6f * drunkIntensity;
+                
+                // Add sway effect with multiple frequencies
+                float swayX = Mathf.Sin(Time.time * DrunkSwaySpeed) * DrunkSwayAmount * drunkIntensity;
+                swayX += Mathf.Sin(Time.time * DrunkSwaySpeed * 1.5f) * DrunkSwayAmount * 0.4f * drunkIntensity;
+                
+                float swayY = Mathf.Cos(Time.time * DrunkSwaySpeed * 0.8f) * DrunkSwayAmount * 0.3f * drunkIntensity;
+                
+                // Add more intense random direction changes
+                float randomX = (Random.value - 0.5f) * 2f * DrunkRandomness * drunkIntensity;
+                float randomY = (Random.value - 0.5f) * 2f * DrunkRandomness * drunkIntensity;
+                
+                // Add additional random wobble for more chaotic movement
+                float chaosX = (Random.value - 0.5f) * 2f * DrunkRandomness * 0.5f * drunkIntensity;
+                float chaosY = (Random.value - 0.5f) * 2f * DrunkRandomness * 0.5f * drunkIntensity;
+                
+                // Apply all effects to the input
+                Vector2 drunkOffset = new Vector2(
+                    wobbleX + swayX + randomX + chaosX,
+                    wobbleY + swayY + randomY + chaosY
+                );
+                
+                _normalizedInput += drunkOffset;
+                _normalizedInput = Vector2.ClampMagnitude(_normalizedInput, 1f);
+                
+                if (ShowDebugInfo)
+                {
+                    Debug.Log($"Drunk Effects: Intensity {drunkIntensity:F2}, Offset {drunkOffset}");
+                }
             }
         }
 
@@ -322,12 +581,23 @@ namespace MoreMountains.TopDownEngine
             {
                 GUI.Label(new Rect(10, 10, 300, 20), $"Movement Stage: {CurrentStage}");
                 GUI.Label(new Rect(10, 30, 300, 20), $"Current Deceleration: {GetCurrentStageDeceleration()}");
-                GUI.Label(new Rect(10, 50, 300, 20), "Press 1, 2, or 3 to switch stages");
+                GUI.Label(new Rect(10, 50, 300, 20), $"Momentum Resistance: {GetMomentumResistance():F2}");
+                GUI.Label(new Rect(10, 70, 300, 20), $"Drift Influence: {GetMomentumResistance() * DriftInfluence:F2}");
+                GUI.Label(new Rect(10, 90, 300, 20), $"Current Speed: {_controller.CurrentMovement.magnitude:F2}");
+                GUI.Label(new Rect(10, 110, 300, 20), $"Momentum Strength: {_momentumStrength:F2}");
                 
                 if (BeerManager.HasInstance)
                 {
-                    GUI.Label(new Rect(10, 70, 300, 20), $"Beer Level: {BeerManager.Instance.CurrentBeer:F1}%");
-                    GUI.Label(new Rect(10, 90, 300, 20), $"Beer Zone: {BeerManager.Instance.CurrentZone}");
+                    float drunkIntensity = GetDrunkIntensity(BeerManager.Instance.CurrentBeer);
+                    GUI.Label(new Rect(10, 130, 300, 20), $"Drunk Intensity: {drunkIntensity:F2}");
+                }
+                
+                GUI.Label(new Rect(10, 150, 300, 20), "Press 1, 2, or 3 to switch stages");
+                
+                if (BeerManager.HasInstance)
+                {
+                    GUI.Label(new Rect(10, 170, 300, 20), $"Beer Level: {BeerManager.Instance.CurrentBeer:F1}%");
+                    GUI.Label(new Rect(10, 190, 300, 20), $"Beer Zone: {BeerManager.Instance.CurrentZone}");
                 }
             }
         }
