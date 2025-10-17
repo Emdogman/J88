@@ -253,24 +253,26 @@ namespace MoreMountains.TopDownEngine
             
             _normalizedInput = _currentInput.normalized;
 
+            // Store original input before any processing
+            Vector2 originalInput = _normalizedInput;
+
             // Apply car-like momentum system for stages 2 and 3
             if (CurrentStage != MovementStage.Stage1_Normal)
             {
                 ApplyCarLikeMomentum();
             }
 
-            // Apply drunk movement effects based on beer level
-            // Drunk effects disabled - no wobble
-            // if (UseBeerSystem && BeerManager.HasInstance)
-            // {
-            //     float beerLevel = BeerManager.Instance.CurrentBeer;
-            //     float drunkIntensity = GetDrunkIntensity(beerLevel);
-            //     
-            //     if (drunkIntensity > 0.1f)
-            //     {
-            //         ApplyDrunkEffects(drunkIntensity);
-            //     }
-            // }
+            // Apply drunk movement effects based on beer level (after momentum system)
+            if (UseBeerSystem && BeerManager.HasInstance)
+            {
+                float beerLevel = BeerManager.Instance.CurrentBeer;
+                float drunkIntensity = GetDrunkIntensity(beerLevel);
+                
+                if (drunkIntensity > 0.1f)
+                {
+                    ApplyDrunkEffects(drunkIntensity, originalInput);
+                }
+            }
 
             float interpolationSpeed = 1f;
             
@@ -491,47 +493,45 @@ namespace MoreMountains.TopDownEngine
         }
 
         /// <summary>
-        /// Applies drunk movement effects to the input
+        /// Applies drunk movement effects to the input (independent of momentum system)
         /// </summary>
         /// <param name="drunkIntensity">How drunk the character is (0-1)</param>
-        protected virtual void ApplyDrunkEffects(float drunkIntensity)
+        /// <param name="originalInput">The original input before momentum processing</param>
+        protected virtual void ApplyDrunkEffects(float drunkIntensity, Vector2 originalInput)
         {
-            if (_normalizedInput.magnitude > 0.1f)
+            // Apply wobble effects independently of momentum system
+            // This ensures wobble works even when momentum blocks input
+            
+            // Create smooth sinusoidal wobble instead of random changes
+            float wobbleX = Mathf.Sin(Time.time * DrunkWobbleSpeed) * DrunkWobbleAmount * drunkIntensity;
+            wobbleX += Mathf.Sin(Time.time * DrunkWobbleSpeed * 0.7f) * DrunkWobbleAmount * 0.5f * drunkIntensity;
+            
+            float wobbleY = Mathf.Cos(Time.time * DrunkWobbleSpeed * 1.3f) * DrunkWobbleAmount * drunkIntensity;
+            wobbleY += Mathf.Cos(Time.time * DrunkWobbleSpeed * 0.9f) * DrunkWobbleAmount * 0.6f * drunkIntensity;
+            
+            // Add smooth sway effect with sinusoidal movement
+            float swayX = Mathf.Sin(Time.time * DrunkSwaySpeed) * DrunkSwayAmount * drunkIntensity;
+            swayX += Mathf.Sin(Time.time * DrunkSwaySpeed * 1.5f) * DrunkSwayAmount * 0.4f * drunkIntensity;
+            
+            float swayY = Mathf.Cos(Time.time * DrunkSwaySpeed * 0.8f) * DrunkSwayAmount * 0.3f * drunkIntensity;
+            
+            // Reduce random effects and make them more subtle
+            float subtleRandomX = (Random.value - 0.5f) * 0.5f * DrunkRandomness * drunkIntensity;
+            float subtleRandomY = (Random.value - 0.5f) * 0.5f * DrunkRandomness * drunkIntensity;
+            
+            // Apply smooth sinusoidal wobble to the input (independent of momentum blocking)
+            Vector2 drunkOffset = new Vector2(
+                wobbleX + swayX + subtleRandomX,
+                wobbleY + swayY + subtleRandomY
+            );
+            
+            // Apply wobble to the current input (after momentum processing)
+            _normalizedInput += drunkOffset;
+            _normalizedInput = Vector2.ClampMagnitude(_normalizedInput, 1f);
+            
+            if (ShowDebugInfo)
             {
-                // Add complex wobble effect with multiple frequencies
-                float wobbleX = Mathf.Sin(Time.time * DrunkWobbleSpeed) * DrunkWobbleAmount * drunkIntensity;
-                wobbleX += Mathf.Sin(Time.time * DrunkWobbleSpeed * 0.7f) * DrunkWobbleAmount * 0.5f * drunkIntensity;
-                
-                float wobbleY = Mathf.Cos(Time.time * DrunkWobbleSpeed * 1.3f) * DrunkWobbleAmount * drunkIntensity;
-                wobbleY += Mathf.Cos(Time.time * DrunkWobbleSpeed * 0.9f) * DrunkWobbleAmount * 0.6f * drunkIntensity;
-                
-                // Add sway effect with multiple frequencies
-                float swayX = Mathf.Sin(Time.time * DrunkSwaySpeed) * DrunkSwayAmount * drunkIntensity;
-                swayX += Mathf.Sin(Time.time * DrunkSwaySpeed * 1.5f) * DrunkSwayAmount * 0.4f * drunkIntensity;
-                
-                float swayY = Mathf.Cos(Time.time * DrunkSwaySpeed * 0.8f) * DrunkSwayAmount * 0.3f * drunkIntensity;
-                
-                // Add more intense random direction changes
-                float randomX = (Random.value - 0.5f) * 2f * DrunkRandomness * drunkIntensity;
-                float randomY = (Random.value - 0.5f) * 2f * DrunkRandomness * drunkIntensity;
-                
-                // Add additional random wobble for more chaotic movement
-                float chaosX = (Random.value - 0.5f) * 2f * DrunkRandomness * 0.5f * drunkIntensity;
-                float chaosY = (Random.value - 0.5f) * 2f * DrunkRandomness * 0.5f * drunkIntensity;
-                
-                // Apply all effects to the input
-                Vector2 drunkOffset = new Vector2(
-                    wobbleX + swayX + randomX + chaosX,
-                    wobbleY + swayY + randomY + chaosY
-                );
-                
-                _normalizedInput += drunkOffset;
-                _normalizedInput = Vector2.ClampMagnitude(_normalizedInput, 1f);
-                
-                if (ShowDebugInfo)
-                {
-                    Debug.Log($"Drunk Effects: Intensity {drunkIntensity:F2}, Offset {drunkOffset}");
-                }
+                Debug.Log($"Drunk Effects: Intensity {drunkIntensity:F2}, Offset {drunkOffset}, Original Input: {originalInput}");
             }
         }
 
