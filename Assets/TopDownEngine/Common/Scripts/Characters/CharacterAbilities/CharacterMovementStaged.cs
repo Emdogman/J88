@@ -411,44 +411,63 @@ namespace MoreMountains.TopDownEngine
             else if (currentSpeed < 0.05f)
             {
                 // Only decay when completely stopped and not braking
+                // But allow momentum to persist for drifting effect
                 _currentMomentumDirection = Vector2.Lerp(_currentMomentumDirection, Vector2.zero, 
-                    MomentumDecayRate * Time.deltaTime);
+                    MomentumDecayRate * 0.3f * Time.deltaTime); // Slower decay for drifting
             }
             
             // Apply car-like momentum blocking for all directions
-            if (_currentMomentumDirection.magnitude > 0.1f && _normalizedInput.magnitude > 0.1f)
+            if (_currentMomentumDirection.magnitude > 0.1f)
             {
-                Vector2 inputDirection = _normalizedInput.normalized;
-                Vector2 momentumDirection = _currentMomentumDirection.normalized;
-                
-                float directionSimilarity = Vector2.Dot(inputDirection, momentumDirection);
-                
-                if (directionSimilarity > 0.7f)
+                if (_normalizedInput.magnitude > 0.1f)
                 {
-                    // Same direction - allow it to continue
-                    if (ShowDebugInfo)
+                    // Player is giving input - check for blocking
+                    Vector2 inputDirection = _normalizedInput.normalized;
+                    Vector2 momentumDirection = _currentMomentumDirection.normalized;
+                    
+                    float directionSimilarity = Vector2.Dot(inputDirection, momentumDirection);
+                    
+                    if (directionSimilarity > 0.7f)
                     {
-                        Debug.Log($"Car Momentum: Continuing in same direction. Similarity: {directionSimilarity:F2}");
+                        // Same direction - allow it to continue
+                        if (ShowDebugInfo)
+                        {
+                            Debug.Log($"Car Momentum: Continuing in same direction. Similarity: {directionSimilarity:F2}");
+                        }
                     }
-                }
-                else if (directionSimilarity < -0.3f)
-                {
-                    // Opposite direction - BLOCK input but allow momentum decay
-                    _normalizedInput = Vector2.zero;
-                    _momentumBlockedInput = true; // Track that input was blocked
-                    if (ShowDebugInfo)
+                    else if (directionSimilarity < -0.3f)
                     {
-                        Debug.Log($"Car Momentum: Braking (input blocked). Momentum will decay. Similarity: {directionSimilarity:F2}");
+                        // Opposite direction - BLOCK input but allow momentum decay
+                        _normalizedInput = Vector2.zero;
+                        _momentumBlockedInput = true; // Track that input was blocked
+                        if (ShowDebugInfo)
+                        {
+                            Debug.Log($"Car Momentum: Braking (input blocked). Momentum will decay. Similarity: {directionSimilarity:F2}");
+                        }
+                    }
+                    else
+                    {
+                        // Different direction - BLOCK input completely
+                        _normalizedInput = Vector2.zero;
+                        _momentumBlockedInput = true; // Track that input was blocked
+                        if (ShowDebugInfo)
+                        {
+                            Debug.Log($"Car Momentum: BLOCKED direction change. Must brake to zero momentum first. Similarity: {directionSimilarity:F2}");
+                        }
                     }
                 }
                 else
                 {
-                    // Different direction - BLOCK input completely
-                    _normalizedInput = Vector2.zero;
-                    _momentumBlockedInput = true; // Track that input was blocked
+                    // No input - apply momentum-based drifting
+                    float momentumStrength = _currentMomentumDirection.magnitude;
+                    Vector2 driftDirection = _currentMomentumDirection.normalized;
+                    
+                    // Apply momentum-based movement for drifting
+                    _normalizedInput = driftDirection * momentumStrength * 0.5f; // 50% of momentum strength for drifting
+                    
                     if (ShowDebugInfo)
                     {
-                        Debug.Log($"Car Momentum: BLOCKED direction change. Must brake to zero momentum first. Similarity: {directionSimilarity:F2}");
+                        Debug.Log($"Car Momentum: Drifting with momentum. Strength: {momentumStrength:F2}, Direction: {driftDirection}");
                     }
                 }
             }
@@ -530,13 +549,25 @@ namespace MoreMountains.TopDownEngine
                 wobbleY + swayY
             );
             
-            // If momentum blocked input, apply minimal wobble for visual effect only
+            // Check if we're currently drifting (momentum-based movement without input)
+            bool isDrifting = _currentMomentumDirection.magnitude > 0.1f && originalInput.magnitude < 0.1f;
+            
             if (_momentumBlockedInput)
             {
+                // Momentum blocked input - apply minimal wobble for visual effect only
                 drunkOffset *= 0.1f; // Reduce wobble to 10% when blocked
                 if (ShowDebugInfo)
                 {
                     Debug.Log($"Wobble Reduced: Momentum blocked input, wobble scaled to 10%");
+                }
+            }
+            else if (isDrifting)
+            {
+                // Drifting with momentum - apply full wobble to enhance drunk effect
+                drunkOffset *= 1.2f; // Slightly increase wobble when drifting
+                if (ShowDebugInfo)
+                {
+                    Debug.Log($"Wobble Enhanced: Drifting with momentum, wobble scaled to 120%");
                 }
             }
             
@@ -546,7 +577,7 @@ namespace MoreMountains.TopDownEngine
             
             if (ShowDebugInfo)
             {
-                Debug.Log($"Drunk Effects: Intensity {drunkIntensity:F2}, Offset {drunkOffset}, Original Input: {originalInput}");
+                Debug.Log($"Drunk Effects: Intensity {drunkIntensity:F2}, Offset {drunkOffset}, Original Input: {originalInput}, IsDrifting: {isDrifting}");
             }
         }
 
@@ -652,18 +683,22 @@ namespace MoreMountains.TopDownEngine
                 GUI.Label(new Rect(10, 110, 300, 20), $"Current Speed: {_controller.CurrentMovement.magnitude:F2}");
                 GUI.Label(new Rect(10, 130, 300, 20), $"Momentum Threshold: {MomentumThreshold:F2}");
                 
+                // Show if currently drifting
+                bool isDrifting = _currentMomentumDirection.magnitude > 0.1f && _normalizedInput.magnitude < 0.1f;
+                GUI.Label(new Rect(10, 150, 300, 20), $"Is Drifting: {isDrifting}");
+                
                 if (BeerManager.HasInstance)
                 {
                     float drunkIntensity = GetDrunkIntensity(BeerManager.Instance.CurrentBeer);
-                    GUI.Label(new Rect(10, 150, 300, 20), $"Drunk Intensity: {drunkIntensity:F2}");
+                    GUI.Label(new Rect(10, 170, 300, 20), $"Drunk Intensity: {drunkIntensity:F2}");
                 }
                 
-                GUI.Label(new Rect(10, 170, 300, 20), "Press 1, 2, or 3 to switch stages");
+                GUI.Label(new Rect(10, 190, 300, 20), "Press 1, 2, or 3 to switch stages");
                 
                 if (BeerManager.HasInstance)
                 {
-                    GUI.Label(new Rect(10, 190, 300, 20), $"Beer Level: {BeerManager.Instance.CurrentBeer:F1}%");
-                    GUI.Label(new Rect(10, 210, 300, 20), $"Beer Zone: {BeerManager.Instance.CurrentZone}");
+                    GUI.Label(new Rect(10, 210, 300, 20), $"Beer Level: {BeerManager.Instance.CurrentBeer:F1}%");
+                    GUI.Label(new Rect(10, 230, 300, 20), $"Beer Zone: {BeerManager.Instance.CurrentZone}");
                 }
             }
         }
