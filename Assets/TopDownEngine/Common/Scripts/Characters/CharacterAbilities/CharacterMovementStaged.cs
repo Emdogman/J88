@@ -55,9 +55,35 @@ namespace MoreMountains.TopDownEngine
         [Tooltip("Whether to show debug information about current stage")]
         public bool ShowDebugInfo = false;
 
+        /// <summary>
+        /// Whether to use the beer system for automatic stage switching
+        /// </summary>
+        [Tooltip("Whether to use the beer system for automatic stage switching")]
+        public bool UseBeerSystem = true;
+
         protected override void Initialization()
         {
             base.Initialization();
+            
+            // Subscribe to beer zone change events if beer system is enabled
+            if (UseBeerSystem)
+            {
+                BeerManager.OnBeerZoneChanged += OnBeerZoneChanged;
+                
+                // Set initial stage based on current beer zone if BeerManager exists
+                if (BeerManager.HasInstance)
+                {
+                    int currentZone = BeerManager.Instance.CurrentZone;
+                    MovementStage initialStage = GetMovementStageFromBeerZone(currentZone);
+                    SetMovementStage(initialStage);
+                }
+            }
+        }
+
+        protected virtual void OnDestroy()
+        {
+            // Unsubscribe from events
+            BeerManager.OnBeerZoneChanged -= OnBeerZoneChanged;
         }
 
         /// <summary>
@@ -67,18 +93,22 @@ namespace MoreMountains.TopDownEngine
         {
             base.HandleInput();
 
-            // Handle stage switching with number keys
-            if (Input.GetKeyDown(KeyCode.Alpha1))
+            // Only allow manual stage switching if beer system is disabled
+            if (!UseBeerSystem)
             {
-                SetMovementStage(MovementStage.Stage1_Normal);
-            }
-            else if (Input.GetKeyDown(KeyCode.Alpha2))
-            {
-                SetMovementStage(MovementStage.Stage2_Drift);
-            }
-            else if (Input.GetKeyDown(KeyCode.Alpha3))
-            {
-                SetMovementStage(MovementStage.Stage3_HighDrift);
+                // Handle stage switching with number keys
+                if (Input.GetKeyDown(KeyCode.Alpha1))
+                {
+                    SetMovementStage(MovementStage.Stage1_Normal);
+                }
+                else if (Input.GetKeyDown(KeyCode.Alpha2))
+                {
+                    SetMovementStage(MovementStage.Stage2_Drift);
+                }
+                else if (Input.GetKeyDown(KeyCode.Alpha3))
+                {
+                    SetMovementStage(MovementStage.Stage3_HighDrift);
+                }
             }
         }
 
@@ -197,6 +227,93 @@ namespace MoreMountains.TopDownEngine
         }
 
         /// <summary>
+        /// Handles beer zone change events from the BeerManager
+        /// </summary>
+        /// <param name="zoneChangeEvent">The beer zone change event</param>
+        protected virtual void OnBeerZoneChanged(BeerZoneChangeEvent zoneChangeEvent)
+        {
+            if (!UseBeerSystem)
+            {
+                return;
+            }
+
+            // Convert beer zone to movement stage
+            MovementStage newStage = GetMovementStageFromBeerZone(zoneChangeEvent.NewZone);
+            SetMovementStage(newStage);
+
+            if (ShowDebugInfo)
+            {
+                Debug.Log($"Beer zone changed to {zoneChangeEvent.NewZone}, switching to movement stage {newStage}");
+            }
+        }
+
+        /// <summary>
+        /// Converts beer zone to movement stage
+        /// </summary>
+        /// <param name="beerZone">The beer zone (1, 2, or 3)</param>
+        /// <returns>The corresponding movement stage</returns>
+        protected virtual MovementStage GetMovementStageFromBeerZone(int beerZone)
+        {
+            switch (beerZone)
+            {
+                case 1:
+                    return MovementStage.Stage1_Normal;    // Zone 1 (0-33% drunk) → Stage 1 (Normal - precise control)
+                case 2:
+                    return MovementStage.Stage2_Drift;     // Zone 2 (34-66% tipsy) → Stage 2 (Drift - slight drift)
+                case 3:
+                    return MovementStage.Stage3_HighDrift; // Zone 3 (67-100% sober) → Stage 3 (High Drift - hard to control)
+                default:
+                    return MovementStage.Stage1_Normal;
+            }
+        }
+
+        /// <summary>
+        /// Context menu method to test movement stage 1
+        /// </summary>
+        [ContextMenu("Test Stage 1 (Normal)")]
+        protected virtual void TestStage1()
+        {
+            SetMovementStage(MovementStage.Stage1_Normal);
+        }
+
+        /// <summary>
+        /// Context menu method to test movement stage 2
+        /// </summary>
+        [ContextMenu("Test Stage 2 (Drift)")]
+        protected virtual void TestStage2()
+        {
+            SetMovementStage(MovementStage.Stage2_Drift);
+        }
+
+        /// <summary>
+        /// Context menu method to test movement stage 3
+        /// </summary>
+        [ContextMenu("Test Stage 3 (High Drift)")]
+        protected virtual void TestStage3()
+        {
+            SetMovementStage(MovementStage.Stage3_HighDrift);
+        }
+
+        /// <summary>
+        /// Context menu method to refresh from BeerManager
+        /// </summary>
+        [ContextMenu("Refresh from BeerManager")]
+        public virtual void RefreshFromBeerManager()
+        {
+            if (BeerManager.HasInstance)
+            {
+                int currentZone = BeerManager.Instance.CurrentZone;
+                MovementStage newStage = GetMovementStageFromBeerZone(currentZone);
+                SetMovementStage(newStage);
+                Debug.Log($"Movement stage refreshed from BeerManager: Zone {currentZone} -> Stage {newStage}");
+            }
+            else
+            {
+                Debug.LogWarning("BeerManager not found! Cannot refresh movement stage.");
+            }
+        }
+
+        /// <summary>
         /// OnGUI for debug information display
         /// </summary>
         protected virtual void OnGUI()
@@ -206,6 +323,12 @@ namespace MoreMountains.TopDownEngine
                 GUI.Label(new Rect(10, 10, 300, 20), $"Movement Stage: {CurrentStage}");
                 GUI.Label(new Rect(10, 30, 300, 20), $"Current Deceleration: {GetCurrentStageDeceleration()}");
                 GUI.Label(new Rect(10, 50, 300, 20), "Press 1, 2, or 3 to switch stages");
+                
+                if (BeerManager.HasInstance)
+                {
+                    GUI.Label(new Rect(10, 70, 300, 20), $"Beer Level: {BeerManager.Instance.CurrentBeer:F1}%");
+                    GUI.Label(new Rect(10, 90, 300, 20), $"Beer Zone: {BeerManager.Instance.CurrentZone}");
+                }
             }
         }
     }

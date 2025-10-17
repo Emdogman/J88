@@ -117,6 +117,7 @@ GameObject:
   - component: {fileID: 114029223409458306}
   - component: {fileID: 114366886109299466}
   - component: {fileID: 2578904003073367510}
+  - component: {fileID: 114123456789012345}
   m_Layer: 0
   m_Name: KoalaCoinPicker
   m_TagString: Untagged
@@ -1555,3 +1556,17 @@ MonoBehaviour:
         FlashDuration: 0.1
         FlashAlpha: 0.3
         FlashID: 0
+--- !u!114 &114123456789012345
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1136408400419902}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b2c3d4e5f6789012345678901234abcd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  BeerAmount: 20
+  ShowDebugInfo: 0
