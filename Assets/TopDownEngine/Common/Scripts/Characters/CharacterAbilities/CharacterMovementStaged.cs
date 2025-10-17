@@ -370,8 +370,8 @@ namespace MoreMountains.TopDownEngine
         /// </summary>
         protected virtual void ApplyCarLikeMomentum()
         {
-            // Get current velocity as a 2D vector
-            Vector2 currentVelocity = new Vector2(_controller.CurrentMovement.x, _controller.CurrentMovement.z);
+            // Get current velocity as a 2D vector (2D top-down game uses Y for vertical)
+            Vector2 currentVelocity = new Vector2(_controller.CurrentMovement.x, _controller.CurrentMovement.y);
             float currentSpeed = currentVelocity.magnitude;
             
             // Check if player is giving opposite input (braking)
