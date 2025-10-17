@@ -160,6 +160,7 @@ namespace MoreMountains.TopDownEngine
         protected Vector2 _carMomentum = Vector2.zero;
         protected Vector2 _lastVelocity = Vector2.zero;
         protected Vector2 _currentMomentumDirection = Vector2.zero;
+        protected bool _momentumBlockedInput = false;
 
         protected override void Initialization()
         {
@@ -255,6 +256,9 @@ namespace MoreMountains.TopDownEngine
 
             // Store original input before any processing
             Vector2 originalInput = _normalizedInput;
+            
+            // Reset momentum blocking flag at start of each frame
+            _momentumBlockedInput = false;
 
             // Apply car-like momentum system for stages 2 and 3
             if (CurrentStage != MovementStage.Stage1_Normal)
@@ -431,6 +435,7 @@ namespace MoreMountains.TopDownEngine
                 {
                     // Opposite direction - BLOCK input but allow momentum decay
                     _normalizedInput = Vector2.zero;
+                    _momentumBlockedInput = true; // Track that input was blocked
                     if (ShowDebugInfo)
                     {
                         Debug.Log($"Car Momentum: Braking (input blocked). Momentum will decay. Similarity: {directionSimilarity:F2}");
@@ -440,6 +445,7 @@ namespace MoreMountains.TopDownEngine
                 {
                     // Different direction - BLOCK input completely
                     _normalizedInput = Vector2.zero;
+                    _momentumBlockedInput = true; // Track that input was blocked
                     if (ShowDebugInfo)
                     {
                         Debug.Log($"Car Momentum: BLOCKED direction change. Must brake to zero momentum first. Similarity: {directionSimilarity:F2}");
@@ -502,7 +508,7 @@ namespace MoreMountains.TopDownEngine
             // Apply wobble effects independently of momentum system
             // This ensures wobble works even when momentum blocks input
             
-            // Create smooth sinusoidal wobble instead of random changes
+            // Pure sinusoidal wobble - no random effects that cause direction changes
             float wobbleX = Mathf.Sin(Time.time * DrunkWobbleSpeed) * DrunkWobbleAmount * drunkIntensity;
             wobbleX += Mathf.Sin(Time.time * DrunkWobbleSpeed * 0.7f) * DrunkWobbleAmount * 0.5f * drunkIntensity;
             
@@ -515,15 +521,24 @@ namespace MoreMountains.TopDownEngine
             
             float swayY = Mathf.Cos(Time.time * DrunkSwaySpeed * 0.8f) * DrunkSwayAmount * 0.3f * drunkIntensity;
             
-            // Reduce random effects and make them more subtle
-            float subtleRandomX = (Random.value - 0.5f) * 0.5f * DrunkRandomness * drunkIntensity;
-            float subtleRandomY = (Random.value - 0.5f) * 0.5f * DrunkRandomness * drunkIntensity;
+            // NO random effects - only pure sinusoidal wobble
+            // This prevents unwanted direction changes while maintaining drunk visual effects
             
             // Apply smooth sinusoidal wobble to the input (independent of momentum blocking)
             Vector2 drunkOffset = new Vector2(
-                wobbleX + swayX + subtleRandomX,
-                wobbleY + swayY + subtleRandomY
+                wobbleX + swayX,
+                wobbleY + swayY
             );
+            
+            // If momentum blocked input, apply minimal wobble for visual effect only
+            if (_momentumBlockedInput)
+            {
+                drunkOffset *= 0.1f; // Reduce wobble to 10% when blocked
+                if (ShowDebugInfo)
+                {
+                    Debug.Log($"Wobble Reduced: Momentum blocked input, wobble scaled to 10%");
+                }
+            }
             
             // Apply wobble to the current input (after momentum processing)
             _normalizedInput += drunkOffset;
