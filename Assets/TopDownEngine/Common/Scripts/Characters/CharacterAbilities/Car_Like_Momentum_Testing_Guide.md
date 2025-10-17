@@ -26,7 +26,7 @@ The car-like momentum system makes the character behave like a car - it must com
 - **Stage3CarMomentum:** 0.95 (how much momentum blocks direction changes in Stage 3)
 - **MomentumThreshold:** 0.2 (minimum speed before momentum blocking kicks in)
 - **MomentumBuildRate:** 3 (how fast momentum builds up when moving)
-- **MomentumDecayRate:** 2 (how fast momentum decays when not moving)
+- **MomentumDecayRate:** 5 (how fast momentum decays when not moving - INCREASED)
 
 ### **Adjusting Car Momentum:**
 - **Higher values** = More car-like behavior (harder to change direction)
@@ -64,16 +64,16 @@ The car-like momentum system makes the character behave like a car - it must com
 1. **Start moving** horizontally (e.g., right)
 2. **Try to change direction** immediately (e.g., left)
 3. **Expected:** Horizontal input COMPLETELY BLOCKED - character won't move left at all
-4. **Press opposite direction** to brake - momentum starts decaying
-5. **Keep pressing opposite direction** until momentum reaches zero
+4. **Press opposite direction** to brake - momentum starts decaying faster
+5. **Keep pressing opposite direction** until momentum reaches zero (faster decay)
 6. **Then change direction** - should work only after momentum is zero
 
 #### **1b. Basic Car Movement (Vertical):**
 1. **Start moving** vertically (e.g., up)
 2. **Try to change direction** immediately (e.g., down)
 3. **Expected:** Vertical input COMPLETELY BLOCKED - character won't move down at all
-4. **Press opposite direction** to brake - momentum starts decaying
-5. **Keep pressing opposite direction** until momentum reaches zero
+4. **Press opposite direction** to brake - momentum starts decaying faster
+5. **Keep pressing opposite direction** until momentum reaches zero (faster decay)
 6. **Then change direction** - should work only after momentum is zero
 
 #### **2. Braking System:**

@@ -155,7 +155,7 @@ namespace MoreMountains.TopDownEngine
         /// How fast momentum decays when not moving
         /// </summary>
         [Tooltip("How fast momentum decays when not moving")]
-        public float MomentumDecayRate = 2f;
+        public float MomentumDecayRate = 5f;
         
         protected Vector2 _carMomentum = Vector2.zero;
         protected Vector2 _lastVelocity = Vector2.zero;
@@ -259,16 +259,17 @@ namespace MoreMountains.TopDownEngine
             }
 
             // Apply drunk movement effects based on beer level
-            if (UseBeerSystem && BeerManager.HasInstance)
-            {
-                float beerLevel = BeerManager.Instance.CurrentBeer;
-                float drunkIntensity = GetDrunkIntensity(beerLevel);
-                
-                if (drunkIntensity > 0.1f)
-                {
-                    ApplyDrunkEffects(drunkIntensity);
-                }
-            }
+            // Drunk effects disabled - no wobble
+            // if (UseBeerSystem && BeerManager.HasInstance)
+            // {
+            //     float beerLevel = BeerManager.Instance.CurrentBeer;
+            //     float drunkIntensity = GetDrunkIntensity(beerLevel);
+            //     
+            //     if (drunkIntensity > 0.1f)
+            //     {
+            //         ApplyDrunkEffects(drunkIntensity);
+            //     }
+            // }
 
             float interpolationSpeed = 1f;
             
