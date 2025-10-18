@@ -915,9 +915,13 @@ MonoBehaviour:
   rb: {fileID: 0}
   playerTag: Player
   playerSearchInterval: 1
-  dropRate: 0.82
-  dropPrefab: {fileID: 1136408400419902, guid: 78d526a077e4aa341b992c1070338a64, type: 3}
-  dropAmount: 1
+  coinDropRate: 0.82
+  coinDropPrefab: {fileID: 1136408400419902, guid: 78d526a077e4aa341b992c1070338a64,
+    type: 3}
+  coinDropAmount: 1
+  healthDropRate: 0.3
+  healthDropPrefab: {fileID: 4210320881252553274, guid: 0188020d685689447baba6884071debc,
+    type: 3}
   dropOffset: 3
   ShowDebugInfo: 0
 --- !u!58 &1825454371297854268
