@@ -10252,8 +10252,9 @@ MonoBehaviour:
   BlockingMovementStates: 
   BlockingConditionStates: 
   BlockingWeaponStates: 
-  InitialWeapon: {fileID: 0}
-  CanPickupWeapons: 1
+  InitialWeapon: {fileID: 469826133289737881, guid: cd6002ed9e207ad44b8c2191ea7ff697,
+    type: 3}
+  CanPickupWeapons: 0
   WeaponUseFeedback: {fileID: 0}
   WeaponAttachment: {fileID: 4515663194721164}
   ProjectileSpawn: {fileID: 0}
@@ -10263,8 +10264,8 @@ MonoBehaviour:
   ContinuousPress: 0
   GettingHitInterruptsAttack: 0
   UseSecondaryAxisThresholdToShoot: 0
-  ForceWeaponAimControl: 0
-  ForcedWeaponAimControl: 1
+  ForceWeaponAimControl: 1
+  ForcedWeaponAimControl: 3
   ForceAlwaysShoot: 0
   BufferInput: 1
   NewInputExtendsBuffer: 0
@@ -10425,7 +10426,7 @@ MonoBehaviour:
   InitialHealth: 30
   MaximumHealth: 30
   ResetHealthOnEnable: 1
-  ImmuneToDamage: 0
+  ImmuneToDamage: 1
   DamageMMFeedbacks: {fileID: 5423255612875023378}
   FeedbackIsProportionalToDamage: 0
   PreventTakeSelfDamage: 0
