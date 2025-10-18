@@ -131,6 +131,10 @@ namespace MoreMountains.TopDownEngine
         [Tooltip("Random offset for drop position")]
         [SerializeField] private float dropOffset = 0.5f;
 
+        [Header("Attack Interruption")]
+        [Tooltip("How long the enemy stays interrupted when hit by player (seconds)")]
+        [SerializeField] private float attackInterruptDuration = 0.5f;
+        
         [Header("Debug")]
         [Tooltip("Show debug information")]
         [SerializeField] private bool ShowDebugInfo = false;
@@ -187,6 +191,10 @@ namespace MoreMountains.TopDownEngine
         private float _lastStrafeTime;
         private float _dynamicChargeCooldown;
         private Rigidbody2D _playerRigidbody;
+        
+        // Attack interruption
+        private bool _isAttackInterrupted = false;
+        private float _attackInterruptEndTime;
 
         private void Awake()
         {
@@ -216,6 +224,7 @@ namespace MoreMountains.TopDownEngine
             if (_health != null)
             {
                 _health.OnDeath += HandleDeathAndDropLoot;
+                _health.OnHit += OnEnemyHit; // Subscribe to hit event for attack interruption
             }
         }
 
@@ -225,6 +234,7 @@ namespace MoreMountains.TopDownEngine
             if (_health != null)
             {
                 _health.OnDeath -= HandleDeathAndDropLoot;
+                _health.OnHit -= OnEnemyHit; // Unsubscribe from hit event
             }
         }
 
@@ -443,6 +453,25 @@ namespace MoreMountains.TopDownEngine
         {
             if (player == null) return;
             
+            // Check if we're currently interrupted from being hit
+            if (_isAttackInterrupted)
+            {
+                if (Time.time >= _attackInterruptEndTime)
+                {
+                    _isAttackInterrupted = false;
+                    if (ShowDebugInfo)
+                    {
+                        Debug.Log("ChaserEnemy: Attack interruption ended, resuming normal behavior");
+                    }
+                }
+                else
+                {
+                    // Stay in orbiting state while interrupted
+                    _currentAttackState = AttackState.Orbiting;
+                    return;
+                }
+            }
+            
             float distanceToPlayer = Vector2.Distance(transform.position, player.position);
             
             // Current attack must complete before checking for new attacks
@@ -515,6 +544,13 @@ namespace MoreMountains.TopDownEngine
         private void CalculateMovement()
         {
             if (player == null) return;
+            
+            // If interrupted, stop moving
+            if (_isAttackInterrupted)
+            {
+                _movement = Vector2.zero;
+                return;
+            }
             
             // If charging, movement is handled by charge logic
             if (_isCharging)
@@ -992,6 +1028,35 @@ namespace MoreMountains.TopDownEngine
             {
                 DropLoot();
                 _hasDroppedLoot = true;
+            }
+        }
+        
+        /// <summary>
+        /// Called when the enemy gets hit by the player
+        /// Interrupts any ongoing attack
+        /// </summary>
+        private void OnEnemyHit()
+        {
+            // Interrupt any ongoing attack
+            if (_currentAttackState == AttackState.MeleeAttack || 
+                _currentAttackState == AttackState.TelegraphingCharge || 
+                _currentAttackState == AttackState.Charging)
+            {
+                _isAttackInterrupted = true;
+                _attackInterruptEndTime = Time.time + attackInterruptDuration;
+                
+                // Stop any ongoing attack
+                _isTelegraphing = false;
+                _isCharging = false;
+                _currentAttackState = AttackState.Orbiting;
+                
+                // Stop movement briefly
+                _movement = Vector2.zero;
+                
+                if (ShowDebugInfo)
+                {
+                    Debug.Log($"ChaserEnemy: Attack interrupted by player hit! Interrupted for {attackInterruptDuration}s");
+                }
             }
         }
 
