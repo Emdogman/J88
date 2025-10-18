@@ -150,7 +150,7 @@ MonoBehaviour:
   MaximumAngle: 180
   MinimumMagnitude: 0.2
   ReticleType: 1
-  Reticle: {fileID: 1000010525066036, guid: f08bfeb16a6183b4386f121ccf51b56e, type: 3}
+  Reticle: {fileID: 636377311199430173, guid: 5df3ffe54e7c24a419bebec38894ca9b, type: 3}
   ReticleDistance: 0
   ReticleHeight: 0
   ReticleAtMousePosition: 1
