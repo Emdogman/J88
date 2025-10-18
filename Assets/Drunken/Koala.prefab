@@ -10731,7 +10731,7 @@ MonoBehaviour:
   stunDuration: 1.5
   beerMeterThreshold: 100
   beerMeterResetValue: 15
-  pukeEffectPrefab: {fileID: 1696394174241273982, guid: 29ed50670c322cc46876240cbad4ae61,
+  pukeEffectPrefab: {fileID: 2290609231981716715, guid: 802d334b3cd30de45a57bbe3840de16d,
     type: 3}
   pukeSpawnDistance: 1
   pukeSpawnRandomOffset: 0.3

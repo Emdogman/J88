@@ -886,11 +886,11 @@ MonoBehaviour:
   default_Attack_Damage: 10
   enemy_Charge_Attack_Damage: 20
   chargeCooldown: 5
-  flank_Distance: 3
-  flank_Position_Offset: 1
+  flank_Distance: 2
+  flank_Position_Offset: 0.7
   reposition_Cooldown: 3
   movementDeadZone: 0.1
-  moveSpeed: 8
+  moveSpeed: 11
   rotationSpeed: 180
   avoidanceRadius: 0.5
   avoidanceStrength: 0.3

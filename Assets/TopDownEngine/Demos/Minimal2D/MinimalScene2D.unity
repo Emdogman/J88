@@ -977,7 +977,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &131539986
 Transform:
   m_ObjectHideFlags: 0
@@ -8867,15 +8867,18 @@ PrefabInstance:
     - target: {fileID: 3545512451245559494, guid: d73aa2d3898a69541852a65f3a8e14e0,
         type: 3}
       propertyPath: Lens.OrthographicSize
-      value: 5.5
+      value: 4.82
       objectReference: {fileID: 0}
     - target: {fileID: 6809262259763442340, guid: d73aa2d3898a69541852a65f3a8e14e0,
         type: 3}
       propertyPath: orthographic size
-      value: 5.5
+      value: 4.82
       objectReference: {fileID: 0}
     m_RemovedComponents: []
-    m_RemovedGameObjects: []
+    m_RemovedGameObjects:
+    - {fileID: 1822335426997150, guid: d73aa2d3898a69541852a65f3a8e14e0, type: 3}
+    - {fileID: 1665469758143900, guid: d73aa2d3898a69541852a65f3a8e14e0, type: 3}
+    - {fileID: 1891163676778778, guid: d73aa2d3898a69541852a65f3a8e14e0, type: 3}
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d73aa2d3898a69541852a65f3a8e14e0, type: 3}
