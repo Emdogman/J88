@@ -1,14 +1,30 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 namespace MoreMountains.TopDownEngine
 {
     /// <summary>
-    /// Enemy that chases the player using tag-based detection
-    /// Includes enemy avoidance behavior to prevent clustering
+    /// Advanced enemy AI that surrounds the player using orbit positioning
+    /// Implements charge attacks and melee attacks using TopDownEngine weapon system
     /// </summary>
     [AddComponentMenu("TopDown Engine/Enemies/Chaser Enemy")]
+    [RequireComponent(typeof(Character))]
+    [RequireComponent(typeof(Health))]
     public class ChaserEnemy : MonoBehaviour
     {
+        [Header("Attack Behavior")]
+        [Tooltip("Distance within which dash attack can begin")]
+        [SerializeField] private float enemy_Dash_Radius = 4f;
+        
+        [Tooltip("Distance for default melee attack")]
+        [SerializeField] private float enemy_Melee_Radius = 1.5f;
+        
+        [Tooltip("Damage for default attack")]
+        [SerializeField] private float default_Attack_Damage = 10f;
+        
+        [Tooltip("Dash speed multiplier")]
+        [SerializeField] private float dashSpeedMultiplier = 2f;
+
         [Header("Movement Settings")]
         [Tooltip("How fast the enemy moves")]
         [SerializeField] private float moveSpeed = 3f;
@@ -28,12 +44,6 @@ namespace MoreMountains.TopDownEngine
         [Header("Attack Settings")]
         [Tooltip("Enable continuous movement while attacking")]
         [SerializeField] private bool attackWhileMoving = true;
-        
-        [Tooltip("Attack range - how close to get before attacking")]
-        [SerializeField] private float attackRange = 1.5f;
-        
-        [Tooltip("Attack damage")]
-        [SerializeField] private float attackDamage = 10f;
         
         [Tooltip("Attack cooldown in seconds")]
         [SerializeField] private float attackCooldown = 1f;
@@ -58,10 +68,35 @@ namespace MoreMountains.TopDownEngine
         [Tooltip("How often to search for player if not found (seconds)")]
         [SerializeField] private float playerSearchInterval = 1f;
 
+        [Header("Debug")]
+        [Tooltip("Show debug information")]
+        [SerializeField] private bool ShowDebugInfo = false;
+
+        // Attack States
+        public enum AttackState
+        {
+            Idle,
+            Dashing,
+            MeleeAttack
+        }
+
+        // Private fields
         private Vector2 _movement;
         private readonly Collider2D[] _enemyHits = new Collider2D[32];
         private ContactFilter2D _enemyFilter;
         private float _lastPlayerSearchTime;
+        
+        // TopDownEngine components
+        private Character _character;
+        private CharacterHandleWeapon _characterHandleWeapon;
+        private Health _health;
+        
+        // Attack state management
+        private AttackState _currentAttackState = AttackState.Idle;
+        private float _lastAttackTime;
+        private bool _isDashing = false;
+        private float _dashStartTime;
+        private float _dashDuration = 0.5f;
 
         private void Awake()
         {
@@ -74,12 +109,113 @@ namespace MoreMountains.TopDownEngine
                 useTriggers = true 
             };
             _enemyFilter.SetLayerMask(enemyLayerMask);
+            
+            // Initialize TopDownEngine components
+            InitializeTopDownEngineComponents();
         }
 
         private void Start()
         {
             // Try to find player immediately
             FindPlayer();
+            
+            // Setup weapons if not already configured
+            SetupEnemyWeapons();
+        }
+
+        /// <summary>
+        /// Initialize TopDownEngine components
+        /// </summary>
+        private void InitializeTopDownEngineComponents()
+        {
+            _character = GetComponent<Character>();
+            _characterHandleWeapon = GetComponent<CharacterHandleWeapon>();
+            _health = GetComponent<Health>();
+            
+            if (_character == null)
+            {
+                Debug.LogError($"ChaserEnemy: Character component required on {gameObject.name}");
+            }
+            
+            if (_characterHandleWeapon == null)
+            {
+                Debug.LogError($"ChaserEnemy: CharacterHandleWeapon component required on {gameObject.name}");
+            }
+            
+            if (_health == null)
+            {
+                Debug.LogError($"ChaserEnemy: Health component required on {gameObject.name}");
+            }
+        }
+
+        /// <summary>
+        /// Sets up weapons for the enemy if not already configured
+        /// </summary>
+        private void SetupEnemyWeapons()
+        {
+            if (_characterHandleWeapon == null) return;
+            
+            // Check if we already have weapons
+            if (_characterHandleWeapon.CurrentWeapon != null) return;
+            
+            // Create weapon attachment point
+            Transform weaponAttachment = transform.Find("WeaponAttachment");
+            if (weaponAttachment == null)
+            {
+                GameObject attachment = new GameObject("WeaponAttachment");
+                attachment.transform.SetParent(transform);
+                attachment.transform.localPosition = Vector3.zero;
+                weaponAttachment = attachment.transform;
+            }
+            
+            // Create melee weapon
+            GameObject meleeWeaponObj = CreateMeleeWeapon();
+            if (meleeWeaponObj != null)
+            {
+                meleeWeaponObj.transform.SetParent(weaponAttachment);
+                meleeWeaponObj.transform.localPosition = Vector3.zero;
+                
+                // Set as initial weapon
+                var meleeWeapon = meleeWeaponObj.GetComponent<EnemyMeleeWeapon>();
+                if (meleeWeapon != null)
+                {
+                    _characterHandleWeapon.ChangeWeapon(meleeWeapon, "EnemyMeleeWeapon");
+                }
+            }
+            
+            if (ShowDebugInfo)
+            {
+                Debug.Log($"ChaserEnemy: Weapons configured for {gameObject.name}");
+            }
+        }
+
+        /// <summary>
+        /// Creates a melee weapon for the enemy
+        /// </summary>
+        private GameObject CreateMeleeWeapon()
+        {
+            GameObject meleeWeaponObj = new GameObject("EnemyMeleeWeapon");
+            
+            // Add EnemyMeleeWeapon component
+            var enemyMeleeWeapon = meleeWeaponObj.AddComponent<EnemyMeleeWeapon>();
+            enemyMeleeWeapon.SetChaserEnemy(this);
+            
+            // Configure damage area
+            enemyMeleeWeapon.MeleeDamageAreaMode = MeleeWeapon.MeleeDamageAreaModes.Generated;
+            enemyMeleeWeapon.DamageAreaShape = MeleeWeapon.MeleeDamageAreaShapes.Circle;
+            enemyMeleeWeapon.AreaSize = new Vector3(enemy_Melee_Radius * 2f, enemy_Melee_Radius * 2f, 1f);
+            enemyMeleeWeapon.AreaOffset = Vector3.zero;
+            
+            // Configure damage
+            enemyMeleeWeapon.MinDamageCaused = default_Attack_Damage;
+            enemyMeleeWeapon.MaxDamageCaused = default_Attack_Damage;
+            enemyMeleeWeapon.TargetLayerMask = attackLayerMask;
+            
+            // Configure timing
+            enemyMeleeWeapon.InitialDelay = 0f;
+            enemyMeleeWeapon.ActiveDuration = 0.5f;
+            
+            return meleeWeaponObj;
         }
 
         private void Update()
@@ -95,6 +231,8 @@ namespace MoreMountains.TopDownEngine
                 return;
             }
             
+            // Update attack state and behavior
+            UpdateAttackState();
             CalculateMovement();
         }
 
@@ -192,33 +330,150 @@ namespace MoreMountains.TopDownEngine
         }
 
         /// <summary>
-        /// Calculates movement direction towards player with enemy avoidance
+        /// Updates the attack state based on distance to player
+        /// </summary>
+        private void UpdateAttackState()
+        {
+            if (player == null) return;
+            
+            float distanceToPlayer = Vector2.Distance(transform.position, player.position);
+            
+            // Check if we can attack (not on cooldown)
+            bool canAttack = Time.time - _lastAttackTime > attackCooldown;
+            
+            if (distanceToPlayer <= enemy_Melee_Radius && canAttack)
+            {
+                // Within melee range - perform melee attack
+                _currentAttackState = AttackState.MeleeAttack;
+                PerformMeleeAttack();
+            }
+            else if (distanceToPlayer <= enemy_Dash_Radius && canAttack && !_isDashing)
+            {
+                // Within dash range but not melee - start dash
+                _currentAttackState = AttackState.Dashing;
+                StartDash();
+            }
+            else
+            {
+                // Too far for attacks - move towards player
+                _currentAttackState = AttackState.Idle;
+            }
+        }
+
+        /// <summary>
+        /// Calculates movement towards player
         /// </summary>
         private void CalculateMovement()
         {
-            var position = transform.position;
-            var direction = ((Vector2)player.position - (Vector2)position).normalized;
+            if (player == null) return;
+            
+            // Update dash behavior if dashing
+            UpdateDashMovement();
+            
+            // Only move if not attacking or if attackWhileMoving is true
+            if (_currentAttackState == AttackState.MeleeAttack && !attackWhileMoving)
+            {
+                _movement = Vector2.zero;
+                return;
+            }
+            
+            // If dashing, movement is already set by UpdateDash()
+            if (_isDashing) return;
+            
+            // Calculate direction to player
+            Vector2 direction = ((Vector2)player.position - (Vector2)transform.position).normalized;
+            
+            // Add avoidance from other enemies
+            Vector2 avoidance = CalculateAvoidance();
+            
+            // Combine movement with avoidance
+            _movement = (direction + avoidance * avoidanceStrength).normalized;
+        }
 
-            // Calculate avoidance from other enemies
-            var avoidance = Vector2.zero;
-            var hitCount = Physics2D.OverlapCircle(position, avoidanceRadius, _enemyFilter, _enemyHits);
+        /// <summary>
+        /// Starts a dash towards the player
+        /// </summary>
+        private void StartDash()
+        {
+            _isDashing = true;
+            _dashStartTime = Time.time;
+            _lastAttackTime = Time.time;
+        }
 
-            for (var i = 0; i < hitCount; i++)
+        /// <summary>
+        /// Updates dash behavior
+        /// </summary>
+        private void UpdateDash()
+        {
+            if (!_isDashing) return;
+            
+            // Check if dash duration is over
+            if (Time.time - _dashStartTime >= _dashDuration)
+            {
+                _isDashing = false;
+                _currentAttackState = AttackState.Idle;
+                return;
+            }
+            
+            // Move towards player at dash speed
+            if (player != null)
+            {
+                Vector2 direction = ((Vector2)player.position - (Vector2)transform.position).normalized;
+                _movement = direction;
+            }
+        }
+
+        /// <summary>
+        /// Calculates avoidance force from other enemies
+        /// </summary>
+        private Vector2 CalculateAvoidance()
+        {
+            Vector2 avoidance = Vector2.zero;
+            Vector2 position = transform.position;
+            int hitCount = Physics2D.OverlapCircle(position, avoidanceRadius, _enemyFilter, _enemyHits);
+
+            for (int i = 0; i < hitCount; i++)
             {
                 var hit = _enemyHits[i];
                 if (hit == null || hit.transform == transform) continue;
 
-                var away = (Vector2)transform.position - (Vector2)hit.transform.position;
-                var dist = away.magnitude;
-                if (!(dist > 0f) || !(dist < avoidanceRadius)) continue;
-                
-                var distFactor = 1f - (dist / avoidanceRadius);
-                avoidance += away / dist * distFactor;
+                Vector2 away = (Vector2)transform.position - (Vector2)hit.transform.position;
+                float dist = away.magnitude;
+                if (dist > 0f && dist < avoidanceRadius)
+                {
+                    float distFactor = 1f - (dist / avoidanceRadius);
+                    avoidance += away / dist * distFactor;
+                }
             }
 
-            // Combine player direction with avoidance
-            var finalDir = (direction + avoidance * avoidanceStrength).normalized;
-            _movement = finalDir;
+            return avoidance;
+        }
+
+        /// <summary>
+        /// Updates dash behavior during movement calculation
+        /// </summary>
+        private void UpdateDashMovement()
+        {
+            if (_isDashing)
+            {
+                UpdateDash();
+            }
+        }
+
+        /// <summary>
+        /// Performs a melee attack
+        /// </summary>
+        private void PerformMeleeAttack()
+        {
+            if (_characterHandleWeapon == null || _characterHandleWeapon.CurrentWeapon == null) return;
+            
+            // Check if we have a melee weapon
+            var meleeWeapon = _characterHandleWeapon.CurrentWeapon.GetComponent<MeleeWeapon>();
+            if (meleeWeapon != null)
+            {
+                _characterHandleWeapon.ShootStart();
+                _lastAttackTime = Time.time;
+            }
         }
 
         /// <summary>
@@ -226,20 +481,26 @@ namespace MoreMountains.TopDownEngine
         /// </summary>
         private void MoveEnemy()
         {
-            rb.linearVelocity = _movement * moveSpeed;
+            float currentSpeed = moveSpeed;
+            
+            // Apply dash speed multiplier if dashing
+            if (_isDashing)
+            {
+                currentSpeed *= dashSpeedMultiplier;
+            }
+            
+            rb.linearVelocity = _movement * currentSpeed;
         }
 
         /// <summary>
         /// Rotates the enemy to face movement direction
+        /// Disabled for surrounding behavior - enemies maintain their original orientation
         /// </summary>
         private void RotateTowardsMovement()
         {
-            if (_movement == Vector2.zero) return;
-            
-            var targetAngle = Mathf.Atan2(_movement.y, _movement.x) * Mathf.Rad2Deg;
-            var currentAngle = baseEnemyTransform.eulerAngles.z;
-            var newAngle = Mathf.MoveTowardsAngle(currentAngle, targetAngle, rotationSpeed * Time.fixedDeltaTime);
-            baseEnemyTransform.rotation = Quaternion.Euler(0f, 0f, newAngle);
+            // Disabled rotation for surrounding behavior
+            // Enemies maintain their original sprite orientation while moving
+            return;
         }
 
         /// <summary>
@@ -274,11 +535,42 @@ namespace MoreMountains.TopDownEngine
         }
 
         /// <summary>
-        /// Debug info display
+        /// Debug visualization using Gizmos
         /// </summary>
-        [Header("Debug")]
-        [Tooltip("Show debug information")]
-        public bool ShowDebugInfo = false;
+        private void OnDrawGizmosSelected()
+        {
+            if (player == null) return;
+            
+            // Draw dash radius
+            Gizmos.color = Color.yellow;
+            Gizmos.DrawWireSphere(player.position, enemy_Dash_Radius);
+            
+            // Draw melee radius
+            Gizmos.color = Color.red;
+            Gizmos.DrawWireSphere(player.position, enemy_Melee_Radius);
+            
+            // Draw line to player
+            Gizmos.color = Color.cyan;
+            Gizmos.DrawLine(transform.position, player.position);
+            
+            // Draw current state indicator
+            Gizmos.color = GetStateColor();
+            Gizmos.DrawWireSphere(transform.position + Vector3.up * 2f, 0.2f);
+        }
+
+        /// <summary>
+        /// Gets color for current attack state
+        /// </summary>
+        private Color GetStateColor()
+        {
+            switch (_currentAttackState)
+            {
+                case AttackState.Idle: return Color.white;
+                case AttackState.Dashing: return Color.yellow;
+                case AttackState.MeleeAttack: return Color.red;
+                default: return Color.gray;
+            }
+        }
 
         private void OnGUI()
         {
@@ -287,8 +579,9 @@ namespace MoreMountains.TopDownEngine
                 GUI.Label(new Rect(10, 10, 300, 20), $"Player: {(player != null ? player.name : "Not Found")}");
                 GUI.Label(new Rect(10, 30, 300, 20), $"Movement: {_movement}");
                 GUI.Label(new Rect(10, 50, 300, 20), $"Speed: {(rb != null ? rb.linearVelocity.magnitude.ToString("F2") : "No Rigidbody2D")}");
-                GUI.Label(new Rect(10, 70, 300, 20), $"Rigidbody2D: {(rb != null ? "Found" : "Missing")}");
-                GUI.Label(new Rect(10, 90, 300, 20), $"Base Transform: {(baseEnemyTransform != null ? "Found" : "Missing")}");
+                GUI.Label(new Rect(10, 70, 300, 20), $"Attack State: {_currentAttackState}");
+                GUI.Label(new Rect(10, 90, 300, 20), $"Is Dashing: {_isDashing}");
+                GUI.Label(new Rect(10, 110, 300, 20), $"Distance to Player: {(player != null ? Vector2.Distance(transform.position, player.position).ToString("F2") : "N/A")}");
             }
         }
     }
