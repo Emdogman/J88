@@ -59,6 +59,9 @@ namespace MoreMountains.TopDownEngine
         
         [Tooltip("Parent for spawned enemies (optional)")]
         public Transform spawnParent;
+        
+        [Tooltip("Layer mask for obstacles/walls to avoid spawning in")]
+        public LayerMask obstacleLayerMask = 1 << 8; // Default to Obstacles layer
 
         [Header("Debug")]
         [Tooltip("Show debug information")]
@@ -213,7 +216,7 @@ namespace MoreMountains.TopDownEngine
         }
 
         /// <summary>
-        /// Calculate spawn position outside camera view
+        /// Calculate spawn position outside camera view and on valid ground
         /// </summary>
         private Vector2 CalculateSpawnPosition()
         {
@@ -227,44 +230,81 @@ namespace MoreMountains.TopDownEngine
             cameraBoundsMin -= spawnAreaPadding;
             cameraBoundsMax += spawnAreaPadding;
 
-            // Choose spawn side
-            SpawnSide spawnSide = ChooseSpawnSide();
-            
-            // Calculate position based on side
-            Vector2 spawnPosition = Vector2.zero;
-            
-            switch (spawnSide)
+            // Try multiple times to find a valid spawn position
+            int maxAttempts = 30;
+            for (int attempt = 0; attempt < maxAttempts; attempt++)
             {
-                case SpawnSide.Top:
-                    spawnPosition = new Vector2(
-                        Random.Range(cameraBoundsMin.x, cameraBoundsMax.x),
-                        cameraBoundsMax.y + spawnDistanceFromCamera
-                    );
-                    break;
-                    
-                case SpawnSide.Bottom:
-                    spawnPosition = new Vector2(
-                        Random.Range(cameraBoundsMin.x, cameraBoundsMax.x),
-                        cameraBoundsMin.y - spawnDistanceFromCamera
-                    );
-                    break;
-                    
-                case SpawnSide.Left:
-                    spawnPosition = new Vector2(
-                        cameraBoundsMin.x - spawnDistanceFromCamera,
-                        Random.Range(cameraBoundsMin.y, cameraBoundsMax.y)
-                    );
-                    break;
-                    
-                case SpawnSide.Right:
-                    spawnPosition = new Vector2(
-                        cameraBoundsMax.x + spawnDistanceFromCamera,
-                        Random.Range(cameraBoundsMin.y, cameraBoundsMax.y)
-                    );
-                    break;
-            }
+                // Choose spawn side
+                SpawnSide spawnSide = ChooseSpawnSide();
+                
+                // Calculate position based on side
+                Vector2 spawnPosition = Vector2.zero;
+                
+                switch (spawnSide)
+                {
+                    case SpawnSide.Top:
+                        spawnPosition = new Vector2(
+                            Random.Range(cameraBoundsMin.x, cameraBoundsMax.x),
+                            cameraBoundsMax.y + spawnDistanceFromCamera
+                        );
+                        break;
+                        
+                    case SpawnSide.Bottom:
+                        spawnPosition = new Vector2(
+                            Random.Range(cameraBoundsMin.x, cameraBoundsMax.x),
+                            cameraBoundsMin.y - spawnDistanceFromCamera
+                        );
+                        break;
+                        
+                    case SpawnSide.Left:
+                        spawnPosition = new Vector2(
+                            cameraBoundsMin.x - spawnDistanceFromCamera,
+                            Random.Range(cameraBoundsMin.y, cameraBoundsMax.y)
+                        );
+                        break;
+                        
+                    case SpawnSide.Right:
+                        spawnPosition = new Vector2(
+                            cameraBoundsMax.x + spawnDistanceFromCamera,
+                            Random.Range(cameraBoundsMin.y, cameraBoundsMax.y)
+                        );
+                        break;
+                }
 
-            return spawnPosition;
+                // Check if position is valid (not on obstacle/wall)
+                if (IsValidSpawnPosition(spawnPosition))
+                {
+                    return spawnPosition;
+                }
+            }
+            
+            // If we couldn't find a valid position after max attempts
+            if (showDebugInfo)
+            {
+                Debug.LogWarning("EnemySpawner: Could not find valid spawn position (not on walls/obstacles) after max attempts");
+            }
+            
+            return Vector2.zero;
+        }
+
+        /// <summary>
+        /// Check if a spawn position is valid (not overlapping with obstacles/walls)
+        /// </summary>
+        private bool IsValidSpawnPosition(Vector2 position)
+        {
+            // Check if position overlaps with any obstacles
+            Collider2D hit = Physics2D.OverlapCircle(position, 0.5f, obstacleLayerMask);
+            
+            if (hit != null)
+            {
+                if (showDebugInfo)
+                {
+                    Debug.Log($"EnemySpawner: Position {position} overlaps with obstacle: {hit.name}");
+                }
+                return false;
+            }
+            
+            return true;
         }
 
         /// <summary>

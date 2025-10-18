@@ -1154,9 +1154,6 @@ MonoBehaviour:
   coinDropPrefab: {fileID: 1136408400419902, guid: 78d526a077e4aa341b992c1070338a64,
     type: 3}
   coinDropAmount: 1
-  healthDropRate: 0.3
-  healthDropPrefab: {fileID: 4210320881252553274, guid: 0188020d685689447baba6884071debc,
-    type: 3}
   dropOffset: 3
   attackInterruptDuration: 0.5
   MeleeAttackStartFeedbacks: {fileID: 330612940595272861}
