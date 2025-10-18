@@ -208,8 +208,109 @@ PrefabInstance:
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 1457462518}
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 1498750440386690, guid: a200a0b4274de1d4da0e68119fadcbbb,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 380341288}
+    - targetCorrespondingSourceObject: {fileID: 1498750440386690, guid: a200a0b4274de1d4da0e68119fadcbbb,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 380341287}
+    - targetCorrespondingSourceObject: {fileID: 1498750440386690, guid: a200a0b4274de1d4da0e68119fadcbbb,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 380341286}
   m_SourcePrefab: {fileID: 100100000, guid: a200a0b4274de1d4da0e68119fadcbbb, type: 3}
+--- !u!1 &380341267 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1498750440386690, guid: a200a0b4274de1d4da0e68119fadcbbb,
+    type: 3}
+  m_PrefabInstance: {fileID: 312875224}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &380341286
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 380341267}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 46584e7fb86abad448e405d7051fdc0f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Drunken.DrunkenAnimationController
+  AbilityStartSfx: {fileID: 0}
+  AbilityInProgressSfx: {fileID: 0}
+  AbilityStopSfx: {fileID: 0}
+  AbilityStartFeedbacks: {fileID: 0}
+  AbilityStopFeedbacks: {fileID: 0}
+  AbilityPermitted: 1
+  BlockingMovementStates: 
+  BlockingConditionStates: 
+  BlockingWeaponStates: 
+  koalaModelAnimator: {fileID: 484364395}
+  moveParameterName: Move
+  idleStateName: Idle
+  drunkenRunStateName: Drunken run
+  movementThreshold: 0.1
+  transitionDuration: 0.1
+--- !u!114 &380341287
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 380341267}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 62afe887d8e97704fa9e547b28dc8025, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Drunken.DrunkenCharacterAnimation
+  AbilityStartSfx: {fileID: 0}
+  AbilityInProgressSfx: {fileID: 0}
+  AbilityStopSfx: {fileID: 0}
+  AbilityStartFeedbacks: {fileID: 0}
+  AbilityStopFeedbacks: {fileID: 0}
+  AbilityPermitted: 1
+  BlockingMovementStates: 
+  BlockingConditionStates: 
+  BlockingWeaponStates: 
+  drunkenAnimatorController: {fileID: 9100000, guid: 9267390d3e7154b40bc892e523f78502,
+    type: 2}
+  normalAnimatorController: {fileID: 0}
+  drunkenMovementThreshold: 0.1
+  animationTransitionDuration: 0.2
+  drunkenAnimationSpeed: 1.2
+  moveParameterName: Move
+  drunkenParameterName: Drunken
+  speedParameterName: Speed
+--- !u!114 &380341288
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 380341267}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9bcb8aba85914da4898dfd3acf5256f8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Drunken.DrunkenAnimationSetup
+  drunkenAnimatorController: {fileID: 9100000, guid: 9267390d3e7154b40bc892e523f78502,
+    type: 2}
+  normalAnimatorController: {fileID: 0}
+  idleClip: {fileID: 0}
+  drunkenRunClip: {fileID: 0}
+  drunkenFeetClip: {fileID: 0}
+  autoSetupOnStart: 1
+  applyDrunkenControllerOnStart: 1
+--- !u!95 &484364395 stripped
+Animator:
+  m_CorrespondingSourceObject: {fileID: 95179347267985190, guid: a200a0b4274de1d4da0e68119fadcbbb,
+    type: 3}
+  m_PrefabInstance: {fileID: 312875224}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &484364396 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4330552656303096, guid: a200a0b4274de1d4da0e68119fadcbbb,
