@@ -880,9 +880,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9073b41df1e477e44ab5caa3961ebaa0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: MoreMountains.TopDownEngine::MoreMountains.TopDownEngine.ChaserEnemy
-  enemy_Melee_Radius: 2
-  enemy_Charge_Radius: 7
-  enemy_Charge_Telegraph_Time: 1
+  enemy_Melee_Radius: 1.5
+  enemy_Charge_Radius: 6
+  enemy_Charge_Telegraph_Time: 0.7
   default_Attack_Damage: 10
   enemy_Charge_Attack_Damage: 20
   chargeCooldown: 5
@@ -923,6 +923,7 @@ MonoBehaviour:
   healthDropPrefab: {fileID: 4210320881252553274, guid: 0188020d685689447baba6884071debc,
     type: 3}
   dropOffset: 3
+  attackInterruptDuration: 0.5
   ShowDebugInfo: 0
 --- !u!58 &1825454371297854268
 CircleCollider2D:
@@ -1133,7 +1134,7 @@ MonoBehaviour:
     m_ColorSpace: -1
     m_NumColorKeys: 2
     m_NumAlphaKeys: 2
-  SortingLayerName: UI
+  SortingLayerName: Foreground
   Delay: 0.5
   LerpFrontBar: 1
   LerpFrontBarSpeed: 15
