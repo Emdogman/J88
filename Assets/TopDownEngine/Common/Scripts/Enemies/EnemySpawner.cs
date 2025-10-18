@@ -43,6 +43,22 @@ namespace MoreMountains.TopDownEngine
         [Tooltip("Which sides to spawn from (if not all sides)")]
         public SpawnSide[] allowedSpawnSides = { SpawnSide.Top, SpawnSide.Bottom, SpawnSide.Left, SpawnSide.Right };
 
+        [Header("Manual Spawn Area Restriction")]
+        [Tooltip("Enable manual spawn area restriction (clamps spawn positions to defined bounds)")]
+        public bool useManualSpawnArea = false;
+        
+        [Tooltip("Minimum X coordinate where enemies can spawn")]
+        public float spawnAreaMinX = -20f;
+        
+        [Tooltip("Maximum X coordinate where enemies can spawn")]
+        public float spawnAreaMaxX = 20f;
+        
+        [Tooltip("Minimum Y coordinate where enemies can spawn")]
+        public float spawnAreaMinY = -20f;
+        
+        [Tooltip("Maximum Y coordinate where enemies can spawn")]
+        public float spawnAreaMaxY = 20f;
+
         [Header("Difficulty Scaling")]
         [Tooltip("Enable difficulty scaling over time")]
         public bool enableDifficultyScaling = true;
@@ -216,7 +232,7 @@ namespace MoreMountains.TopDownEngine
         }
 
         /// <summary>
-        /// Calculate spawn position outside camera view and on valid ground
+        /// Calculate spawn position outside camera view and within manual bounds
         /// </summary>
         private Vector2 CalculateSpawnPosition()
         {
@@ -230,6 +246,15 @@ namespace MoreMountains.TopDownEngine
             cameraBoundsMin -= spawnAreaPadding;
             cameraBoundsMax += spawnAreaPadding;
 
+            // If using manual spawn area, restrict the random range to stay within bounds
+            if (useManualSpawnArea)
+            {
+                cameraBoundsMin.x = Mathf.Max(cameraBoundsMin.x, spawnAreaMinX);
+                cameraBoundsMin.y = Mathf.Max(cameraBoundsMin.y, spawnAreaMinY);
+                cameraBoundsMax.x = Mathf.Min(cameraBoundsMax.x, spawnAreaMaxX);
+                cameraBoundsMax.y = Mathf.Min(cameraBoundsMax.y, spawnAreaMaxY);
+            }
+
             // Try multiple times to find a valid spawn position
             int maxAttempts = 30;
             for (int attempt = 0; attempt < maxAttempts; attempt++)
@@ -238,42 +263,28 @@ namespace MoreMountains.TopDownEngine
                 SpawnSide spawnSide = ChooseSpawnSide();
                 
                 // Calculate position based on side
-                Vector2 spawnPosition = Vector2.zero;
+                Vector2 spawnPosition = CalculatePositionForSide(spawnSide, cameraBoundsMin, cameraBoundsMax);
                 
-                switch (spawnSide)
+                // Final clamp to ensure within manual bounds (safety check)
+                if (useManualSpawnArea)
                 {
-                    case SpawnSide.Top:
-                        spawnPosition = new Vector2(
-                            Random.Range(cameraBoundsMin.x, cameraBoundsMax.x),
-                            cameraBoundsMax.y + spawnDistanceFromCamera
-                        );
-                        break;
-                        
-                    case SpawnSide.Bottom:
-                        spawnPosition = new Vector2(
-                            Random.Range(cameraBoundsMin.x, cameraBoundsMax.x),
-                            cameraBoundsMin.y - spawnDistanceFromCamera
-                        );
-                        break;
-                        
-                    case SpawnSide.Left:
-                        spawnPosition = new Vector2(
-                            cameraBoundsMin.x - spawnDistanceFromCamera,
-                            Random.Range(cameraBoundsMin.y, cameraBoundsMax.y)
-                        );
-                        break;
-                        
-                    case SpawnSide.Right:
-                        spawnPosition = new Vector2(
-                            cameraBoundsMax.x + spawnDistanceFromCamera,
-                            Random.Range(cameraBoundsMin.y, cameraBoundsMax.y)
-                        );
-                        break;
+                    spawnPosition.x = Mathf.Clamp(spawnPosition.x, spawnAreaMinX, spawnAreaMaxX);
+                    spawnPosition.y = Mathf.Clamp(spawnPosition.y, spawnAreaMinY, spawnAreaMaxY);
                 }
-
+                
+                // Verify position is still outside camera view (after clamping)
+                if (!IsPositionOutsideCameraView(spawnPosition))
+                {
+                    continue; // Try again if clamping brought it into view
+                }
+                
                 // Check if position is valid (not on obstacle/wall)
                 if (IsValidSpawnPosition(spawnPosition))
                 {
+                    if (showDebugInfo)
+                    {
+                        Debug.Log($"EnemySpawner: Valid spawn position found at {spawnPosition} after {attempt + 1} attempts");
+                    }
                     return spawnPosition;
                 }
             }
@@ -281,10 +292,65 @@ namespace MoreMountains.TopDownEngine
             // If we couldn't find a valid position after max attempts
             if (showDebugInfo)
             {
-                Debug.LogWarning("EnemySpawner: Could not find valid spawn position (not on walls/obstacles) after max attempts");
+                Debug.LogWarning("EnemySpawner: Could not find valid spawn position after max attempts");
             }
             
             return Vector2.zero;
+        }
+
+        /// <summary>
+        /// Calculate spawn position for a specific side
+        /// </summary>
+        private Vector2 CalculatePositionForSide(SpawnSide spawnSide, Vector2 cameraBoundsMin, Vector2 cameraBoundsMax)
+        {
+            Vector2 spawnPosition = Vector2.zero;
+            
+            switch (spawnSide)
+            {
+                case SpawnSide.Top:
+                    spawnPosition = new Vector2(
+                        Random.Range(cameraBoundsMin.x, cameraBoundsMax.x),
+                        cameraBoundsMax.y + spawnDistanceFromCamera
+                    );
+                    break;
+                    
+                case SpawnSide.Bottom:
+                    spawnPosition = new Vector2(
+                        Random.Range(cameraBoundsMin.x, cameraBoundsMax.x),
+                        cameraBoundsMin.y - spawnDistanceFromCamera
+                    );
+                    break;
+                    
+                case SpawnSide.Left:
+                    spawnPosition = new Vector2(
+                        cameraBoundsMin.x - spawnDistanceFromCamera,
+                        Random.Range(cameraBoundsMin.y, cameraBoundsMax.y)
+                    );
+                    break;
+                    
+                case SpawnSide.Right:
+                    spawnPosition = new Vector2(
+                        cameraBoundsMax.x + spawnDistanceFromCamera,
+                        Random.Range(cameraBoundsMin.y, cameraBoundsMax.y)
+                    );
+                    break;
+            }
+            
+            return spawnPosition;
+        }
+
+        /// <summary>
+        /// Check if a position is outside the camera view
+        /// </summary>
+        private bool IsPositionOutsideCameraView(Vector2 position)
+        {
+            if (mainCamera == null) return true;
+            
+            Vector3 viewportPoint = mainCamera.WorldToViewportPoint(position);
+            
+            // Position is outside if viewport coordinates are < 0 or > 1
+            return viewportPoint.x < 0 || viewportPoint.x > 1 || 
+                   viewportPoint.y < 0 || viewportPoint.y > 1;
         }
 
         /// <summary>
@@ -421,6 +487,27 @@ namespace MoreMountains.TopDownEngine
             Vector2 rightCenter = new Vector2(max.x + spawnDistanceFromCamera / 2, (min.y + max.y) / 2);
             Vector2 rightSize = new Vector2(spawnDistanceFromCamera, max.y - min.y);
             Gizmos.DrawWireCube(rightCenter, rightSize);
+            
+            // Draw manual spawn area restriction if enabled
+            if (useManualSpawnArea)
+            {
+                Gizmos.color = Color.green;
+                Vector2 manualCenter = new Vector2(
+                    (spawnAreaMinX + spawnAreaMaxX) / 2,
+                    (spawnAreaMinY + spawnAreaMaxY) / 2
+                );
+                Vector2 manualSize = new Vector2(
+                    spawnAreaMaxX - spawnAreaMinX,
+                    spawnAreaMaxY - spawnAreaMinY
+                );
+                Gizmos.DrawWireCube(manualCenter, manualSize);
+                
+                // Draw corners for clarity
+                Gizmos.DrawWireSphere(new Vector2(spawnAreaMinX, spawnAreaMinY), 0.5f);
+                Gizmos.DrawWireSphere(new Vector2(spawnAreaMaxX, spawnAreaMinY), 0.5f);
+                Gizmos.DrawWireSphere(new Vector2(spawnAreaMinX, spawnAreaMaxY), 0.5f);
+                Gizmos.DrawWireSphere(new Vector2(spawnAreaMaxX, spawnAreaMaxY), 0.5f);
+            }
         }
 
     }
