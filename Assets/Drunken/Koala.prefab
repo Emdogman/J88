@@ -9888,7 +9888,6 @@ GameObject:
   - component: {fileID: 1669749731838842869}
   - component: {fileID: 5267972870384168576}
   - component: {fileID: 6907052163186491945}
-  - component: {fileID: 1541649059397460104}
   m_Layer: 10
   m_Name: Koala
   m_TagString: Player
@@ -10678,22 +10677,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Drunken.DrunkenFeetAdvancedDiagnostic
   showDiagnosticGUI: 1
   testController: {fileID: 0}
---- !u!114 &1541649059397460104
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1498750440386690}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: add459d3596909243af6f4a893e79227, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Drunken.DrunkenAttackInputHandler
-  targetAnimator: {fileID: 0}
-  attackParameterName: Attack
-  attackDuration: 1
-  attackCooldown: 0.5
 --- !u!1 &1561075265052736
 GameObject:
   m_ObjectHideFlags: 0
@@ -17939,7 +17922,7 @@ MonoBehaviour:
         DebugActive: 0
         Intensity: 1
         Value: 100
-        UseIntensityAsValue: 0
+        UseIntensityAsValue: 1
         RoundingMethod: 1
         ForceColor: 0
         AnimateColorGradient:
@@ -17974,13 +17957,13 @@ MonoBehaviour:
           m_NumAlphaKeys: 2
         ForceLifetime: 0
         Lifetime: 0.5
-        PositionMode: 1
-        TargetTransform: {fileID: 0}
+        PositionMode: 0
+        TargetTransform: {fileID: 4330552656303096}
         Direction: {x: 0, y: 0, z: 0}
-        AttachmentTransform: {fileID: 0}
+        AttachmentTransform: {fileID: 4330552656303096}
         TargetHealth: {fileID: 114171358364461030}
         Formatting: 
-        DamageDirectionImpactsTextDirection: 1
+        DamageDirectionImpactsTextDirection: 0
         DamageDirectionMultiplier: 0.5
 --- !u!1 &6808776468769401931
 GameObject:
