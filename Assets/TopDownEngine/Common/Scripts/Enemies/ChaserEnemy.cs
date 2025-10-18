@@ -26,7 +26,7 @@ namespace MoreMountains.TopDownEngine
         [SerializeField] private float default_Attack_Damage = 10f;
         
         [Tooltip("High damage for charge attack")]
-        [SerializeField] private float enemy_Charge_Attack_Damage = 25f;
+        [SerializeField] private float enemy_Charge_Attack_Damage = 20f;
         
         [Tooltip("Cooldown between charge attacks in seconds")]
         [SerializeField] private float chargeCooldown = 5f;
@@ -597,15 +597,15 @@ namespace MoreMountains.TopDownEngine
         /// <summary>
         /// Handles collision detection for charge attacks
         /// </summary>
-        private void OnTriggerEnter2D(Collider2D other)
+        private void OnCollisionEnter2D(Collision2D collision)
         {
             // Check if we hit the player
-            if (other.CompareTag(playerTag))
+            if (collision.gameObject.CompareTag(playerTag))
             {
                 // Deal charge damage if charging
                 if (_isCharging && !_hasDealtChargeDamage)
                 {
-                    DealChargeDamage(other);
+                    DealChargeDamage(collision.gameObject.GetComponent<Collider2D>());
                 }
             }
         }

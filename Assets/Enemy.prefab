@@ -630,7 +630,7 @@ MonoBehaviour:
   enemy_Charge_Radius: 5
   enemy_Charge_Telegraph_Time: 1.5
   default_Attack_Damage: 10
-  enemy_Charge_Attack_Damage: 25
+  enemy_Charge_Attack_Damage: 20
   chargeCooldown: 5
   flank_Distance: 3
   flank_Position_Offset: 1
