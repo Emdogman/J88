@@ -9766,7 +9766,7 @@ Transform:
   m_GameObject: {fileID: 1358283918792732}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.625, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -9774,6 +9774,7 @@ Transform:
   - {fileID: 4315474336313948}
   - {fileID: 4246027342705354}
   - {fileID: 4822752530308628}
+  - {fileID: 3266882860447106063}
   m_Father: {fileID: 4001341059962208}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &212479530728563738
@@ -9823,7 +9824,7 @@ SpriteRenderer:
   m_SortingLayerID: 47421343
   m_SortingLayer: 4
   m_SortingOrder: 0
-  m_Sprite: {fileID: 21300002, guid: dc570d0b68875aa468baed8b33c5965b, type: 3}
+  m_Sprite: {fileID: 723903221, guid: c7c94ee3d2e586e45bad7973ffa27568, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -9844,7 +9845,7 @@ Animator:
   m_GameObject: {fileID: 1358283918792732}
   m_Enabled: 1
   m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: 91b83942a92301949b1e0d318f032906, type: 2}
+  m_Controller: {fileID: 9100000, guid: 9267390d3e7154b40bc892e523f78502, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
@@ -9882,6 +9883,9 @@ GameObject:
   - component: {fileID: 114104414726605804}
   - component: {fileID: 114171358364461030}
   - component: {fileID: 114499223069276626}
+  - component: {fileID: 4635989002324284277}
+  - component: {fileID: 1435219058640531977}
+  - component: {fileID: 5169137234291291860}
   m_Layer: 10
   m_Name: Koala
   m_TagString: Player
@@ -9972,8 +9976,8 @@ CircleCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0, y: 0.24}
-  m_Radius: 0.3
+  m_Offset: {x: 0.04217869, y: -0.042375237}
+  m_Radius: 0.2508761
 --- !u!210 &210286107803106362
 SortingGroup:
   m_ObjectHideFlags: 0
@@ -10129,11 +10133,15 @@ MonoBehaviour:
   Stage3MomentumResistance: 0.8
   DirectionChangeDamping: 0.3
   DriftInfluence: 0.5
+  Stage2CarMomentum: 0.8
+  Stage3CarMomentum: 0.95
+  MomentumThreshold: 0.2
+  MomentumBuildRate: 3
+  MomentumDecayRate: 200
+  EnableDrunkWobble: 1
   DrunkWobbleAmount: 0.8
   DrunkWobbleSpeed: 7
-  DrunkRandomness: 0.4
-  DrunkSwayAmount: 0.6
-  DrunkSwaySpeed: 4
+  DrunkWobbleSpeed2: 5
 --- !u!114 &114079283237680582
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10471,6 +10479,83 @@ MonoBehaviour:
   EdgePrecision: 3
   EdgeThreshold: 0.5
   VisionMeshFilter: {fileID: 33599144827507420}
+--- !u!114 &4635989002324284277
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1498750440386690}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9bcb8aba85914da4898dfd3acf5256f8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Drunken.DrunkenAnimationSetup
+  drunkenAnimatorController: {fileID: 9100000, guid: 9267390d3e7154b40bc892e523f78502,
+    type: 2}
+  normalAnimatorController: {fileID: 0}
+  idleClip: {fileID: 0}
+  drunkenRunClip: {fileID: 0}
+  drunkenFeetClip: {fileID: 0}
+  autoSetupOnStart: 1
+  applyDrunkenControllerOnStart: 1
+--- !u!114 &1435219058640531977
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1498750440386690}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 62afe887d8e97704fa9e547b28dc8025, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Drunken.DrunkenCharacterAnimation
+  AbilityStartSfx: {fileID: 0}
+  AbilityInProgressSfx: {fileID: 0}
+  AbilityStopSfx: {fileID: 0}
+  AbilityStartFeedbacks: {fileID: 0}
+  AbilityStopFeedbacks: {fileID: 0}
+  AbilityPermitted: 1
+  BlockingMovementStates: 
+  BlockingConditionStates: 
+  BlockingWeaponStates: 
+  drunkenAnimatorController: {fileID: 9100000, guid: 9267390d3e7154b40bc892e523f78502,
+    type: 2}
+  normalAnimatorController: {fileID: 0}
+  drunkenMovementThreshold: 0.1
+  animationTransitionDuration: 0.2
+  drunkenAnimationSpeed: 1.2
+  moveParameterName: Move
+  drunkenParameterName: Drunken
+  speedParameterName: Speed
+--- !u!114 &5169137234291291860
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1498750440386690}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 46584e7fb86abad448e405d7051fdc0f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Drunken.DrunkenAnimationController
+  AbilityStartSfx: {fileID: 0}
+  AbilityInProgressSfx: {fileID: 0}
+  AbilityStopSfx: {fileID: 0}
+  AbilityStartFeedbacks: {fileID: 0}
+  AbilityStopFeedbacks: {fileID: 0}
+  AbilityPermitted: 1
+  BlockingMovementStates: 
+  BlockingConditionStates: 
+  BlockingWeaponStates: 
+  koalaModelAnimator: {fileID: 95179347267985190}
+  moveParameterName: Move
+  idleStateName: Idle
+  drunkenRunStateName: Drunken run
+  movementThreshold: 0.1
+  transitionDuration: 0.1
 --- !u!1 &1561075265052736
 GameObject:
   m_ObjectHideFlags: 0
@@ -15957,6 +16042,119 @@ MonoBehaviour:
           m_RotationOrder: 4
         Amplitude: 1
         RelativeIntensity: 0
+--- !u!1 &2405509016122378347
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3266882860447106063}
+  - component: {fileID: 1350370114016690778}
+  - component: {fileID: 5685970045359884559}
+  m_Layer: 10
+  m_Name: Legs
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3266882860447106063
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2405509016122378347}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 4330552656303096}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!95 &1350370114016690778
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2405509016122378347}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 90e933865f46ce142abd3a26ec9cacbf, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
+--- !u!212 &5685970045359884559
+SpriteRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2405509016122378347}
+  m_Enabled: 1
+  m_CastShadows: 0
+  m_ReceiveShadows: 0
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 0
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 0
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_Sprite: {fileID: -786445163, guid: ab2c4326ed830364491610aa12316d8f, type: 3}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_FlipX: 0
+  m_FlipY: 0
+  m_DrawMode: 0
+  m_Size: {x: 1, y: 1}
+  m_AdaptiveModeThreshold: 0.5
+  m_SpriteTileMode: 0
+  m_WasSpriteAssigned: 1
+  m_MaskInteraction: 0
+  m_SpriteSortPoint: 0
 --- !u!1 &2769150743623416789
 GameObject:
   m_ObjectHideFlags: 0
