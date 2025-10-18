@@ -9543,7 +9543,7 @@ MonoBehaviour:
   dropRate: 1
   dropPrefab: {fileID: 1136408400419902, guid: 78d526a077e4aa341b992c1070338a64, type: 3}
   dropAmount: 1
-  dropOffset: 0.5
+  dropOffset: 3
   ShowDebugInfo: 0
 --- !u!114 &1372521023
 MonoBehaviour:
