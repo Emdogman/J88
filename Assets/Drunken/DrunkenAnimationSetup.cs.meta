@@ -7,9 +7,13 @@ MonoImporter:
   - drunkenAnimatorController: {fileID: 9100000, guid: 9267390d3e7154b40bc892e523f78502,
       type: 2}
   - normalAnimatorController: {instanceID: 0}
+  - drunkenLegsAnimatorController: {fileID: 9100000, guid: 90e933865f46ce142abd3a26ec9cacbf,
+      type: 2}
+  - normalLegsAnimatorController: {instanceID: 0}
   - idleClip: {instanceID: 0}
   - drunkenRunClip: {instanceID: 0}
   - drunkenFeetClip: {instanceID: 0}
+  - drunkenLegsClip: {instanceID: 0}
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 
