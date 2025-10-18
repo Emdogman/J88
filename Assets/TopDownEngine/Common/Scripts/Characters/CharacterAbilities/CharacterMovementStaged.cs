@@ -133,16 +133,22 @@ namespace MoreMountains.TopDownEngine
         [Header("Drunk Wobble Settings")]
 
         /// <summary>
-        /// Enable drunk wobble effects in Stage 3
+        /// Enable drunk wobble effects in Stages 2 and 3
         /// </summary>
-        [Tooltip("Enable drunk wobble effects in Stage 3")]
+        [Tooltip("Enable drunk wobble effects in Stages 2 and 3")]
         public bool EnableDrunkWobble = true;
 
         /// <summary>
-        /// How much the input wobbles when drunk (0-1)
+        /// How much the input wobbles in Stage 2 (tipsy) - less than Stage 3
         /// </summary>
-        [Tooltip("How much the input wobbles when drunk (0-1)")]
-        public float DrunkWobbleAmount = 0.15f;
+        [Tooltip("How much the input wobbles in Stage 2 (tipsy) - less than Stage 3")]
+        public float Stage2WobbleAmount = 0.08f;
+
+        /// <summary>
+        /// How much the input wobbles in Stage 3 (very drunk) - most wobble
+        /// </summary>
+        [Tooltip("How much the input wobbles in Stage 3 (very drunk) - most wobble")]
+        public float Stage3WobbleAmount = 0.15f;
 
         /// <summary>
         /// Primary wobble frequency (Hz)
@@ -255,8 +261,8 @@ namespace MoreMountains.TopDownEngine
                 ApplyCarLikeMomentum();
             }
 
-            // Apply drunk wobble effects in Stage 3 only (after momentum system)
-            if (EnableDrunkWobble && CurrentStage == MovementStage.Stage3_HighDrift)
+            // Apply drunk wobble effects in Stages 2 and 3 (after momentum system)
+            if (EnableDrunkWobble && CurrentStage != MovementStage.Stage1_Normal)
             {
                 ApplyDrunkWobble();
             }
@@ -464,7 +470,8 @@ namespace MoreMountains.TopDownEngine
         }
 
         /// <summary>
-        /// Applies drunk wobble effects to movement input (Stage 3 only)
+        /// Applies drunk wobble effects to movement input (Stages 2 and 3)
+        /// Stage 2 has moderate wobble, Stage 3 has strong wobble
         /// Uses pure sinusoidal oscillation for smooth, predictable wobble
         /// </summary>
         protected virtual void ApplyDrunkWobble()
@@ -475,9 +482,12 @@ namespace MoreMountains.TopDownEngine
                 return;
             }
             
+            // Get wobble amount based on current stage
+            float wobbleAmount = CurrentStage == MovementStage.Stage2_Drift ? Stage2WobbleAmount : Stage3WobbleAmount;
+            
             // Pure horizontal sinusoidal wobble only (no vertical movement)
-            float wobbleX = Mathf.Sin(Time.time * DrunkWobbleSpeed) * DrunkWobbleAmount;
-            wobbleX += Mathf.Sin(Time.time * DrunkWobbleSpeed2 * 0.7f) * DrunkWobbleAmount * 0.5f;
+            float wobbleX = Mathf.Sin(Time.time * DrunkWobbleSpeed) * wobbleAmount;
+            wobbleX += Mathf.Sin(Time.time * DrunkWobbleSpeed2 * 0.7f) * wobbleAmount * 0.5f;
             
             // No vertical wobble - only horizontal sway
             float wobbleY = 0f;
@@ -490,7 +500,7 @@ namespace MoreMountains.TopDownEngine
             
             if (ShowDebugInfo)
             {
-                Debug.Log($"Drunk Wobble Applied: Offset {wobbleOffset}, Final Input: {_normalizedInput}");
+                Debug.Log($"Drunk Wobble Applied (Stage {CurrentStage}): Offset {wobbleOffset}, Final Input: {_normalizedInput}");
             }
         }
 
