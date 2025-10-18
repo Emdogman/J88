@@ -1033,8 +1033,8 @@ MonoBehaviour:
   Model: {fileID: 0}
   CurrentHealth: 50
   Invulnerable: 0
-  InitialHealth: 50
-  MaximumHealth: 50
+  InitialHealth: 100
+  MaximumHealth: 100
   ResetHealthOnEnable: 1
   ImmuneToDamage: 0
   DamageMMFeedbacks: {fileID: 3683237215974528257}
@@ -1115,17 +1115,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9073b41df1e477e44ab5caa3961ebaa0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: MoreMountains.TopDownEngine::MoreMountains.TopDownEngine.ChaserEnemy
-  enemy_Melee_Radius: 1.5
-  enemy_Charge_Radius: 6
-  enemy_Charge_Telegraph_Time: 0.7
+  enemy_Melee_Radius: 1.65
+  enemy_Charge_Radius: 5
+  enemy_Charge_Telegraph_Time: 1
   default_Attack_Damage: 10
-  enemy_Charge_Attack_Damage: 20
+  enemy_Charge_Attack_Damage: 30
   chargeCooldown: 5
   flank_Distance: 2
   flank_Position_Offset: 0.7
   reposition_Cooldown: 3
   movementDeadZone: 0.1
-  moveSpeed: 11
+  moveSpeed: 6
   rotationSpeed: 180
   avoidanceRadius: 0.5
   avoidanceStrength: 0.3
@@ -1150,7 +1150,7 @@ MonoBehaviour:
   rb: {fileID: 0}
   playerTag: Player
   playerSearchInterval: 1
-  coinDropRate: 0.82
+  coinDropRate: 1
   coinDropPrefab: {fileID: 1136408400419902, guid: 78d526a077e4aa341b992c1070338a64,
     type: 3}
   coinDropAmount: 1
