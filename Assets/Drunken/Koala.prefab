@@ -17,7 +17,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &4246027342705354
 Transform:
   m_ObjectHideFlags: 0
@@ -4795,7 +4795,6 @@ ParticleSystemRenderer:
   m_RendererPriority: 0
   m_Materials:
   - {fileID: 2100000, guid: 90b4a85560efd8044ba3c7c82bef32f5, type: 2}
-  - {fileID: 0}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -9774,7 +9773,6 @@ Transform:
   - {fileID: 4315474336313948}
   - {fileID: 4246027342705354}
   - {fileID: 4822752530308628}
-  - {fileID: 3266882860447106063}
   m_Father: {fileID: 4001341059962208}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &212479530728563738
@@ -9845,7 +9843,7 @@ Animator:
   m_GameObject: {fileID: 1358283918792732}
   m_Enabled: 1
   m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: 90e933865f46ce142abd3a26ec9cacbf, type: 2}
+  m_Controller: {fileID: 9100000, guid: 9267390d3e7154b40bc892e523f78502, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
@@ -9888,7 +9886,9 @@ GameObject:
   - component: {fileID: 5169137234291291860}
   - component: {fileID: 2926122946861340738}
   - component: {fileID: 2384063908152165542}
-  - component: {fileID: 1530617624430602312}
+  - component: {fileID: 1669749731838842869}
+  - component: {fileID: 5267972870384168576}
+  - component: {fileID: 6907052163186491945}
   m_Layer: 10
   m_Name: Koala
   m_TagString: Player
@@ -9916,6 +9916,7 @@ Transform:
   - {fileID: 210470828788380443}
   - {fileID: 7375390012173718480}
   - {fileID: 8773258298053573596}
+  - {fileID: 3266882860447106063}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!50 &50050392041868628
@@ -10497,11 +10498,15 @@ MonoBehaviour:
   drunkenAnimatorController: {fileID: 9100000, guid: 9267390d3e7154b40bc892e523f78502,
     type: 2}
   normalAnimatorController: {fileID: 0}
+  drunkenLegsAnimatorController: {fileID: 0}
+  normalLegsAnimatorController: {fileID: 0}
   idleClip: {fileID: 0}
   drunkenRunClip: {fileID: 0}
   drunkenFeetClip: {fileID: 0}
+  drunkenLegsClip: {fileID: 0}
   autoSetupOnStart: 1
   applyDrunkenControllerOnStart: 1
+  applyDrunkenLegsControllerOnStart: 1
 --- !u!114 &1435219058640531977
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10523,7 +10528,7 @@ MonoBehaviour:
   BlockingMovementStates: 
   BlockingConditionStates: 
   BlockingWeaponStates: 
-  drunkenAnimatorController: {fileID: 9100000, guid: 90e933865f46ce142abd3a26ec9cacbf,
+  drunkenAnimatorController: {fileID: 9100000, guid: 9267390d3e7154b40bc892e523f78502,
     type: 2}
   normalAnimatorController: {fileID: 0}
   drunkenMovementThreshold: 0.1
@@ -10615,7 +10620,7 @@ MonoBehaviour:
   speedParameterName: Speed
   syncWithMainAnimation: 1
   syncAnimationSpeed: 1
---- !u!114 &1530617624430602312
+--- !u!114 &1669749731838842869
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -10624,7 +10629,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1498750440386690}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 359d11747971f2547991daaf5ecac66a, type: 3}
+  m_Script: {fileID: 11500000, guid: a37caa1c7c2fd264896d12aaeddba483, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Drunken.DrunkenLegsAnimationController
   AbilityStartSfx: {fileID: 0}
@@ -10636,13 +10641,42 @@ MonoBehaviour:
   BlockingMovementStates: 
   BlockingConditionStates: 
   BlockingWeaponStates: 
-  legsAnimator: {fileID: 0}
+  legsAnimator: {fileID: 1350370114016690778}
   moveParameterName: Move
   idleStateName: New State
   drunkenFeetStateName: Drunken feet
   movementThreshold: 0.1
   transitionDuration: 0.1
   syncWithMainAnimation: 1
+--- !u!114 &5267972870384168576
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1498750440386690}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 93baa91e8e575364d843f25b15fe1ea3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Drunken.DrunkenFeetQuickFix
+  drunkenFeetController: {fileID: 9100000, guid: 90e933865f46ce142abd3a26ec9cacbf,
+    type: 2}
+  autoFixOnStart: 1
+--- !u!114 &6907052163186491945
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1498750440386690}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d2009e13b6b400f41939c738ee5a4780, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Drunken.DrunkenFeetAdvancedDiagnostic
+  showDiagnosticGUI: 1
+  testController: {fileID: 0}
 --- !u!1 &1561075265052736
 GameObject:
   m_ObjectHideFlags: 0
@@ -16155,12 +16189,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2405509016122378347}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 4330552656303096}
+  m_Father: {fileID: 4001341059962208}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!95 &1350370114016690778
 Animator:
