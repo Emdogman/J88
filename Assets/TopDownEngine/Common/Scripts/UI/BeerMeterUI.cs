@@ -67,6 +67,12 @@ namespace MoreMountains.TopDownEngine
         /// </summary>
         [Tooltip("Whether to show debug information")]
         public bool ShowDebugInfo = false;
+        
+        /// <summary>
+        /// If true, auto-setup will override editor positioning. If false, respects editor positioning.
+        /// </summary>
+        [Tooltip("If true, auto-setup will override editor positioning. If false, respects editor positioning.")]
+        public bool OverrideEditorPositioning = false;
 
         /// <summary>
         /// Whether to use periodic refresh as a fallback if events don't work
@@ -497,13 +503,25 @@ namespace MoreMountains.TopDownEngine
                 rectTransform = gameObject.AddComponent<RectTransform>();
             }
             
-            // Set up default positioning (top center, thin and long)
-            // Width: 20% to 80% of screen (60% total width)
-            // Height: 90% to 95% of screen (5% total height)
-            rectTransform.anchorMin = new Vector2(0.2f, 0.9f);
-            rectTransform.anchorMax = new Vector2(0.8f, 0.95f);
-            rectTransform.offsetMin = Vector2.zero;
-            rectTransform.offsetMax = Vector2.zero;
+            // Only set up default positioning if OverrideEditorPositioning is true OR if the UI hasn't been configured
+            // Check if the rect transform has default values (indicating it hasn't been positioned)
+            bool hasCustomPositioning = rectTransform.anchorMin != Vector2.zero || 
+                                      rectTransform.anchorMax != Vector2.one || 
+                                      rectTransform.offsetMin != Vector2.zero || 
+                                      rectTransform.offsetMax != Vector2.zero ||
+                                      rectTransform.localScale != Vector3.one;
+            
+            if (OverrideEditorPositioning || !hasCustomPositioning)
+            {
+                // Set up default positioning only if not configured in editor
+                // Width: 20% to 80% of screen (60% total width)
+                // Height: 90% to 95% of screen (5% total height)
+                rectTransform.anchorMin = new Vector2(0.2f, 0.9f);
+                rectTransform.anchorMax = new Vector2(0.8f, 0.95f);
+                rectTransform.offsetMin = Vector2.zero;
+                rectTransform.offsetMax = Vector2.zero;
+                rectTransform.localScale = Vector3.one;
+            }
 
             if (ShowDebugInfo)
             {
