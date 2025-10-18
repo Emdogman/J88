@@ -285,19 +285,5 @@ namespace MoreMountains.TopDownEngine
             Gizmos.DrawWireSphere(mouseWorldPos, 0.2f);
         }
 
-        private void OnGUI()
-        {
-            if (!showDebugInfo || !Application.isPlaying) return;
-            
-            Vector3 mouseWorldPos = GetMouseWorldPosition();
-            float angle = CalculateRotationAngle(mouseWorldPos);
-            
-            GUI.Box(new Rect(10, 10, 300, 120), "Mouse Rotation Debug");
-            
-            GUI.Label(new Rect(20, 35, 280, 20), $"Mouse World Pos: {mouseWorldPos}");
-            GUI.Label(new Rect(20, 55, 280, 20), $"Target Angle: {angle:F1}°");
-            GUI.Label(new Rect(20, 75, 280, 20), $"Current Rotation: {transform.eulerAngles.z:F1}°");
-            GUI.Label(new Rect(20, 95, 280, 20), $"Mouse Moving: {_isMouseMoving}");
-        }
     }
 }

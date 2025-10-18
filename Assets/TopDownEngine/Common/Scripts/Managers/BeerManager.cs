@@ -334,14 +334,5 @@ namespace MoreMountains.TopDownEngine
             SetBeerLevel(75f);
         }
 
-        protected virtual void OnGUI()
-        {
-            if (ShowDebugInfo)
-            {
-                GUI.Label(new Rect(10, 70, 300, 20), $"Beer Level: {CurrentBeer:F1}%");
-                GUI.Label(new Rect(10, 90, 300, 20), $"Current Zone: {_currentZone}");
-                GUI.Label(new Rect(10, 110, 300, 20), $"Movement Stage: {GetMovementStageFromZone()}");
-            }
-        }
     }
 }

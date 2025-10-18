@@ -248,20 +248,5 @@ namespace MoreMountains.TopDownEngine
             Debug.Log($"  - Sprite Renderer: {(_spriteRenderer != null ? "Found" : "Not found")}");
         }
 
-        private void OnGUI()
-        {
-            if (!showDebugInfo || !Application.isPlaying) return;
-            
-            GUI.Box(new Rect(10, 120, 300, 80), "Puke Effect Debug");
-            
-            GUI.Label(new Rect(20, 145, 280, 20), $"Duration: {effectDuration}s");
-            GUI.Label(new Rect(20, 165, 280, 20), $"Animating: {(_isAnimating ? "Yes" : "No")}");
-            GUI.Label(new Rect(20, 185, 280, 20), $"Scale: {transform.localScale.x:F2}");
-            
-            if (GUI.Button(new Rect(20, 205, 100, 20), "Test Animation"))
-            {
-                TestEffectAnimation();
-            }
-        }
     }
 }

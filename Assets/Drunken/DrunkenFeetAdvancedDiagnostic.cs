@@ -342,36 +342,5 @@ namespace Drunken
             _diagnosticReport += "\n";
         }
         
-        void OnGUI()
-        {
-            if (!showDiagnosticGUI) return;
-            
-            // Display diagnostic report
-            GUI.Label(new Rect(10, 10, 800, 600), _diagnosticReport);
-            
-            // Add control buttons
-            if (GUI.Button(new Rect(10, 620, 150, 30), "Run Full Diagnostic"))
-            {
-                RunFullDiagnostic();
-            }
-            
-            if (GUI.Button(new Rect(170, 620, 150, 30), "Test Move Parameter"))
-            {
-                if (_legsAnimator != null)
-                {
-                    _legsAnimator.SetBool("Move", true);
-                    Debug.Log("🧪 Manually set Move parameter to true");
-                }
-            }
-            
-            if (GUI.Button(new Rect(330, 620, 150, 30), "Reset Move Parameter"))
-            {
-                if (_legsAnimator != null)
-                {
-                    _legsAnimator.SetBool("Move", false);
-                    Debug.Log("🔄 Reset Move parameter to false");
-                }
-            }
-        }
     }
 }

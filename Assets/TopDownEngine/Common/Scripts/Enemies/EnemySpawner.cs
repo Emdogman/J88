@@ -383,28 +383,5 @@ namespace MoreMountains.TopDownEngine
             Gizmos.DrawWireCube(rightCenter, rightSize);
         }
 
-        /// <summary>
-        /// Debug GUI information
-        /// </summary>
-        private void OnGUI()
-        {
-            if (!showDebugInfo) return;
-
-            float elapsedTime = Time.time - _gameStartTime;
-            
-            GUI.Label(new Rect(10, 10, 300, 20), $"Enemy Spawner Debug");
-            GUI.Label(new Rect(10, 30, 300, 20), $"Elapsed Time: {elapsedTime:F1}s");
-            GUI.Label(new Rect(10, 50, 300, 20), $"Current Spawn Interval: {_currentSpawnInterval:F2}s");
-            GUI.Label(new Rect(10, 70, 300, 20), $"Active Enemies: {_activeEnemyCount}");
-            GUI.Label(new Rect(10, 90, 300, 20), $"Max Enemies: {(maxEnemies > 0 ? maxEnemies.ToString() : "Unlimited")}");
-            GUI.Label(new Rect(10, 110, 300, 20), $"Is Spawning: {isSpawning}");
-            GUI.Label(new Rect(10, 130, 300, 20), $"Difficulty Scaling: {enableDifficultyScaling}");
-            
-            if (enableDifficultyScaling)
-            {
-                float nextIncrease = difficultyIncreaseInterval - (elapsedTime - _lastDifficultyIncrease);
-                GUI.Label(new Rect(10, 150, 300, 20), $"Next Difficulty Increase: {nextIncrease:F1}s");
-            }
-        }
     }
 }

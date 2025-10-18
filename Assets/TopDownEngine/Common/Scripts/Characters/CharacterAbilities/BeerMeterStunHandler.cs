@@ -624,20 +624,5 @@ namespace MoreMountains.TopDownEngine
             }
         }
 
-        private void OnGUI()
-        {
-            if (!showDebugInfo || !Application.isPlaying) return;
-            
-            GUI.Box(new Rect(10, 10, 300, 100), "Beer Stun Debug");
-            
-            GUI.Label(new Rect(20, 35, 280, 20), $"Beer Level: {(_beerManager != null ? _beerManager.CurrentBeer.ToString("F1") : "N/A")}");
-            GUI.Label(new Rect(20, 55, 280, 20), $"Threshold: {beerMeterThreshold}");
-            GUI.Label(new Rect(20, 75, 280, 20), $"Stunned: {(_isStunned ? "Yes" : "No")}");
-            
-            if (GUI.Button(new Rect(20, 95, 100, 20), "Test Stun"))
-            {
-                TestStunSequence();
-            }
-        }
     }
 }

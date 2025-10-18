@@ -140,23 +140,5 @@ namespace MoreMountains.TopDownEngine
             }
         }
 
-        protected virtual void OnGUI()
-        {
-            if (ShowDebugInfo)
-            {
-                GUI.Label(new Rect(10, 10, 400, 20), "Beer Meter Tester - Press 1,2,3,0,9 to test different levels");
-                GUI.Label(new Rect(10, 30, 400, 20), "Right-click component for context menu options");
-                
-                if (BeerManager.HasInstance)
-                {
-                    GUI.Label(new Rect(10, 50, 400, 20), $"Current Beer Level: {BeerManager.Instance.CurrentBeer:F1}%");
-                    GUI.Label(new Rect(10, 70, 400, 20), $"Current Zone: {BeerManager.Instance.CurrentZone}");
-                }
-                else
-                {
-                    GUI.Label(new Rect(10, 50, 400, 20), "BeerManager not found! Click 'Create Beer System' in context menu.");
-                }
-            }
-        }
     }
 }

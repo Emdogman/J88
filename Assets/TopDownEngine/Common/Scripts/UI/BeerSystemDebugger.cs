@@ -208,51 +208,5 @@ namespace MoreMountains.TopDownEngine
             TestBeerLevel(75f);
         }
 
-        protected virtual void OnGUI()
-        {
-            if (ShowOnScreenDebug)
-            {
-                int yOffset = 10;
-                
-                GUI.Label(new Rect(10, yOffset, 400, 20), "=== Beer System Debugger ===");
-                yOffset += 25;
-                
-                GUI.Label(new Rect(10, yOffset, 400, 20), "Press 1,2,3,0,9 to test beer levels, R to refresh");
-                yOffset += 25;
-                
-                if (_beerManager != null)
-                {
-                    GUI.Label(new Rect(10, yOffset, 400, 20), $"BeerManager - Level: {_beerManager.CurrentBeer:F1}%, Zone: {_beerManager.CurrentZone}");
-                    yOffset += 20;
-                }
-                else
-                {
-                    GUI.Label(new Rect(10, yOffset, 400, 20), "BeerManager: NOT FOUND");
-                    yOffset += 20;
-                }
-                
-                if (_beerMeterUI != null)
-                {
-                    GUI.Label(new Rect(10, yOffset, 400, 20), "BeerMeterUI: FOUND");
-                    yOffset += 20;
-                }
-                else
-                {
-                    GUI.Label(new Rect(10, yOffset, 400, 20), "BeerMeterUI: NOT FOUND");
-                    yOffset += 20;
-                }
-                
-                if (_characterMovement != null)
-                {
-                    GUI.Label(new Rect(10, yOffset, 400, 20), $"CharacterMovement - Stage: {_characterMovement.CurrentStage}, Deceleration: {_characterMovement.Deceleration}");
-                    yOffset += 20;
-                }
-                else
-                {
-                    GUI.Label(new Rect(10, yOffset, 400, 20), "CharacterMovementStaged: NOT FOUND");
-                    yOffset += 20;
-                }
-            }
-        }
     }
 }

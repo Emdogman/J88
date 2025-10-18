@@ -602,34 +602,5 @@ namespace MoreMountains.TopDownEngine
             }
         }
 
-        /// <summary>
-        /// OnGUI for debug information display
-        /// </summary>
-        protected virtual void OnGUI()
-        {
-            if (ShowDebugInfo)
-            {
-                GUI.Label(new Rect(10, 10, 300, 20), $"Movement Stage: {CurrentStage}");
-                GUI.Label(new Rect(10, 30, 300, 20), $"Current Deceleration: {GetCurrentStageDeceleration()}");
-                GUI.Label(new Rect(10, 50, 300, 20), $"Car Momentum Strength: {GetCarMomentumStrength():F2}");
-                GUI.Label(new Rect(10, 70, 300, 20), $"Momentum Direction: {_currentMomentumDirection}");
-                GUI.Label(new Rect(10, 90, 300, 20), $"Momentum Magnitude: {_currentMomentumDirection.magnitude:F2}");
-                GUI.Label(new Rect(10, 110, 300, 20), $"Current Speed: {_controller.CurrentMovement.magnitude:F2}");
-                GUI.Label(new Rect(10, 130, 300, 20), $"Momentum Threshold: {MomentumThreshold:F2}");
-                
-                if (EnableDrunkWobble && CurrentStage == MovementStage.Stage3_HighDrift)
-                {
-                    GUI.Label(new Rect(10, 150, 300, 20), $"Drunk Wobble: ACTIVE");
-                }
-                
-                GUI.Label(new Rect(10, 170, 300, 20), "Press 1, 2, or 3 to switch stages");
-                
-                if (BeerManager.HasInstance)
-                {
-                    GUI.Label(new Rect(10, 190, 300, 20), $"Beer Level: {BeerManager.Instance.CurrentBeer:F1}%");
-                    GUI.Label(new Rect(10, 210, 300, 20), $"Beer Zone: {BeerManager.Instance.CurrentZone}");
-                }
-            }
-        }
     }
 }

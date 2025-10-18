@@ -844,29 +844,6 @@ namespace MoreMountains.TopDownEngine
             }
         }
 
-        private void OnGUI()
-        {
-            if (ShowDebugInfo)
-            {
-                float timeSinceLastCharge = Time.time - _lastChargeTime;
-                bool canCharge = timeSinceLastCharge > chargeCooldown;
-                
-                GUI.Label(new Rect(10, 10, 300, 20), $"Player: {(player != null ? player.name : "Not Found")}");
-                GUI.Label(new Rect(10, 30, 300, 20), $"Movement: {_movement}");
-                GUI.Label(new Rect(10, 50, 300, 20), $"Speed: {(rb != null ? rb.linearVelocity.magnitude.ToString("F2") : "No RB")}");
-                GUI.Label(new Rect(10, 70, 300, 20), $"Attack State: {_currentAttackState}");
-                GUI.Label(new Rect(10, 90, 300, 20), $"Is Telegraphing: {_isTelegraphing}");
-                GUI.Label(new Rect(10, 110, 300, 20), $"Is Charging: {_isCharging}");
-                GUI.Label(new Rect(10, 130, 300, 20), $"Orbit Position: {_targetOrbitPosition}");
-                GUI.Label(new Rect(10, 150, 300, 20), $"At Orbit: {_hasReachedOrbitPosition}");
-                GUI.Label(new Rect(10, 170, 300, 20), $"Distance to Player: {(player != null ? Vector2.Distance(transform.position, player.position).ToString("F2") : "N/A")}");
-                GUI.Label(new Rect(10, 190, 300, 20), $"Charge Cooldown: {Mathf.Max(0, chargeCooldown - (Time.time - _lastChargeTime)):F1}s");
-                GUI.Label(new Rect(10, 210, 300, 20), $"Health: {(_health != null ? _health.CurrentHealth.ToString("F1") : "No Health")}");
-                GUI.Label(new Rect(10, 230, 300, 20), $"Has Dropped Loot: {_hasDroppedLoot}");
-                GUI.Label(new Rect(10, 250, 300, 20), $"Drop Rate: {dropRate:P0}");
-                GUI.Label(new Rect(10, 270, 300, 20), $"Drop Amount: {dropAmount}");
-            }
-        }
 
         /// <summary>
         /// Handles death and drops loot when enemy dies
