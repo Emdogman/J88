@@ -138,7 +138,7 @@ namespace Drunken
                 _enemyAnimationController.movementThreshold = 0.1f;
                 _enemyAnimationController.transitionDuration = 0.1f;
                 _enemyAnimationController.moveParameterName = "Move";
-                _enemyAnimationController.attackParameterName = "Attack";
+                _enemyAnimationController.attackTriggerName = "Attack";
                 _enemyAnimationController.idleStateName = "Idle";
                 _enemyAnimationController.enemyRunStateName = "Enemy run";
                 _enemyAnimationController.attackStateName = "Attack";

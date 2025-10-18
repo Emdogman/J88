@@ -19,8 +19,8 @@ namespace Drunken
         [Tooltip("Name of the Move parameter in the animator")]
         public string moveParameterName = "Move";
         
-        [Tooltip("Name of the Attack parameter in the animator")]
-        public string attackParameterName = "Attack";
+        [Tooltip("Name of the Attack trigger in the animator")]
+        public string attackTriggerName = "Attack";
         
         [Tooltip("Name of the Idle animation state")]
         public string idleStateName = "Idle";
@@ -40,9 +40,8 @@ namespace Drunken
         
         // Private variables
         private bool _isMoving = false;
-        private bool _isAttacking = false;
         private int _moveParameterHash;
-        private int _attackParameterHash;
+        private int _attackTriggerHash;
         private int _idleStateHash;
         private int _enemyRunStateHash;
         private int _attackStateHash;
@@ -71,7 +70,6 @@ namespace Drunken
             if (enemyAnimator == null) return;
             
             UpdateMovementAnimation();
-            UpdateAttackAnimation();
         }
         
         /// <summary>
@@ -102,7 +100,7 @@ namespace Drunken
             if (enemyAnimator == null) return;
             
             _moveParameterHash = Animator.StringToHash(moveParameterName);
-            _attackParameterHash = Animator.StringToHash(attackParameterName);
+            _attackTriggerHash = Animator.StringToHash(attackTriggerName);
             _idleStateHash = Animator.StringToHash(idleStateName);
             _enemyRunStateHash = Animator.StringToHash(enemyRunStateName);
             _attackStateHash = Animator.StringToHash(attackStateName);
@@ -189,37 +187,20 @@ namespace Drunken
         }
         
         /// <summary>
-        /// Updates the attack animation
+        /// Triggers the attack animation
         /// </summary>
-        private void UpdateAttackAnimation()
+        public void TriggerAttackAnimation()
         {
-            // Check if enemy is attacking
-            bool isCurrentlyAttacking = false;
-            
-            if (_chaserEnemy != null)
+            if (enemyAnimator != null)
             {
-                // Use reflection to access private attack state
-                var attackStateField = typeof(ChaserEnemy).GetField("_currentAttackState", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-                if (attackStateField != null)
+                try
                 {
-                    var attackState = attackStateField.GetValue(_chaserEnemy);
-                    isCurrentlyAttacking = attackState != null && attackState.ToString() != "Idle";
+                    enemyAnimator.SetTrigger(_attackTriggerHash);
+                    Debug.Log("EnemyAnimationController: Triggered Attack animation");
                 }
-            }
-            
-            // Update animation if attack state changed
-            if (isCurrentlyAttacking != _isAttacking)
-            {
-                _isAttacking = isCurrentlyAttacking;
-                enemyAnimator.SetBool(_attackParameterHash, _isAttacking);
-                
-                if (_isAttacking)
+                catch (System.Exception e)
                 {
-                    Debug.Log("EnemyAnimationController: Enemy started attacking - Set Attack parameter to true");
-                }
-                else
-                {
-                    Debug.Log("EnemyAnimationController: Enemy stopped attacking - Set Attack parameter to false");
+                    Debug.LogWarning($"EnemyAnimationController: Could not trigger Attack: {e.Message}");
                 }
             }
         }
@@ -254,12 +235,15 @@ namespace Drunken
         }
         
         /// <summary>
-        /// Checks if the enemy is currently attacking
+        /// Checks if the enemy is currently in attack animation state
         /// </summary>
-        /// <returns>True if attacking</returns>
+        /// <returns>True if in attack state</returns>
         public bool IsAttacking()
         {
-            return _isAttacking;
+            if (enemyAnimator == null) return false;
+            
+            AnimatorStateInfo stateInfo = enemyAnimator.GetCurrentAnimatorStateInfo(0);
+            return stateInfo.IsName(attackStateName);
         }
         
         /// <summary>
@@ -293,12 +277,7 @@ namespace Drunken
         /// </summary>
         public void TriggerEnemyAttack()
         {
-            if (enemyAnimator != null)
-            {
-                enemyAnimator.SetBool(_attackParameterHash, true);
-                _isAttacking = true;
-                Debug.Log("EnemyAnimationController: Manually triggered enemy attack animation");
-            }
+            TriggerAttackAnimation();
         }
         
         /// <summary>
@@ -309,9 +288,7 @@ namespace Drunken
             if (enemyAnimator != null)
             {
                 enemyAnimator.SetBool(_moveParameterHash, false);
-                enemyAnimator.SetBool(_attackParameterHash, false);
                 _isMoving = false;
-                _isAttacking = false;
                 Debug.Log("EnemyAnimationController: Reset enemy animation to idle");
             }
         }

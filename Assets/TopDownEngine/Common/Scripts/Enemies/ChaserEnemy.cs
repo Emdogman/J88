@@ -686,8 +686,29 @@ namespace MoreMountains.TopDownEngine
             var meleeWeapon = _characterHandleWeapon.CurrentWeapon.GetComponent<MeleeWeapon>();
             if (meleeWeapon != null)
             {
+                // Trigger attack animation
+                TriggerAttackAnimation();
+                
                 _characterHandleWeapon.ShootStart();
                 _lastAttackTime = Time.time;
+            }
+        }
+        
+        /// <summary>
+        /// Triggers the attack animation via EnemyAnimationController
+        /// </summary>
+        private void TriggerAttackAnimation()
+        {
+            // Use GetComponent with string name to avoid namespace issues
+            var animController = GetComponent("EnemyAnimationController");
+            if (animController != null)
+            {
+                // Use reflection to call the method
+                var method = animController.GetType().GetMethod("TriggerAttackAnimation");
+                if (method != null)
+                {
+                    method.Invoke(animController, null);
+                }
             }
         }
 
