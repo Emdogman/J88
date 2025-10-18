@@ -141,9 +141,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: MoreMountains.TopDownEngine::MoreMountains.TopDownEngine.WeaponAim2D
   AimControl: 3
-  AimControlActive: 0
+  AimControlActive: 1
   RotationMode: 0
-  WeaponRotationSpeed: 1
+  WeaponRotationSpeed: 100
   MinimumAngle: -180
   MaximumAngle: 180
   MinimumMagnitude: 0.2
