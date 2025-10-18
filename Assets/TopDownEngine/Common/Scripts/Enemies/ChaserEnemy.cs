@@ -13,9 +13,6 @@ namespace MoreMountains.TopDownEngine
     public class ChaserEnemy : MonoBehaviour
     {
         [Header("Attack Behavior")]
-        [Tooltip("Distance within which dash attack can begin")]
-        [SerializeField] private float enemy_Dash_Radius = 4f;
-        
         [Tooltip("Distance for default melee attack")]
         [SerializeField] private float enemy_Melee_Radius = 1.5f;
         
@@ -31,17 +28,18 @@ namespace MoreMountains.TopDownEngine
         [Tooltip("High damage for charge attack")]
         [SerializeField] private float enemy_Charge_Attack_Damage = 25f;
         
-        [Tooltip("Dash speed multiplier")]
-        [SerializeField] private float dashSpeedMultiplier = 2f;
-        
-        [Tooltip("Damage dealt by dash attack")]
-        [SerializeField] private float dashDamage = 15f;
-        
-        [Tooltip("Cooldown between dash attacks in seconds")]
-        [SerializeField] private float dashCooldown = 3f;
-        
         [Tooltip("Cooldown between charge attacks in seconds")]
         [SerializeField] private float chargeCooldown = 5f;
+
+        [Header("Orbiting Behavior")]
+        [Tooltip("Distance from player to maintain orbit")]
+        [SerializeField] private float flank_Distance = 3f;
+
+        [Tooltip("Random offset applied to orbit position for natural movement")]
+        [SerializeField] private float flank_Position_Offset = 1f;
+
+        [Tooltip("Cooldown before recalculating orbit position")]
+        [SerializeField] private float reposition_Cooldown = 2f;
 
         [Header("Movement Settings")]
         [Tooltip("How fast the enemy moves")]
@@ -109,11 +107,10 @@ namespace MoreMountains.TopDownEngine
         // Attack States
         public enum AttackState
         {
-            Idle,
-            Dashing,
-            TelegraphingCharge,
-            Charging,
-            MeleeAttack
+            Orbiting,           // Moving to/maintaining orbit position
+            TelegraphingCharge, // Preparing charge attack
+            Charging,           // Executing charge attack
+            MeleeAttack        // Close range melee (if kept)
         }
 
         // Private fields
@@ -128,15 +125,15 @@ namespace MoreMountains.TopDownEngine
         private Health _health;
         
         // Attack state management
-        private AttackState _currentAttackState = AttackState.Idle;
+        private AttackState _currentAttackState = AttackState.Orbiting;
         private float _lastAttackTime;
-        private float _lastDashTime;
         private float _lastChargeTime;
-        private bool _isDashing = false;
-        private float _dashStartTime;
-        private float _dashDuration = 0.5f;
-        private bool _hasDealtDashDamage = false;
-        private Vector2 _dashTargetPosition;
+        
+        // Orbiting behavior
+        private Vector2 _targetOrbitPosition;
+        private float _lastRepositionTime;
+        private bool _hasReachedOrbitPosition;
+        private float _orbitAngle;
         
         // Charge attack management
         private bool _isTelegraphing = false;
@@ -404,36 +401,31 @@ namespace MoreMountains.TopDownEngine
             
             float distanceToPlayer = Vector2.Distance(transform.position, player.position);
             
-            // Check if we can attack (not on cooldown)
-            bool canAttack = Time.time - _lastAttackTime > attackCooldown;
-            bool canDash = Time.time - _lastDashTime > dashCooldown;
+            // Current attack must complete before checking for new attacks
+            if (_isCharging || _isTelegraphing) 
+            {
+                UpdateChargeAttack();
+                return;
+            }
+            
             bool canCharge = Time.time - _lastChargeTime > chargeCooldown;
             
-            // Update charge attack states
-            UpdateChargeAttack();
-            
-            if (distanceToPlayer <= enemy_Melee_Radius && canAttack)
+            // Check for charge attack opportunity
+            if (distanceToPlayer <= enemy_Charge_Radius && canCharge)
             {
-                // Within melee range - perform melee attack
-                _currentAttackState = AttackState.MeleeAttack;
-                PerformMeleeAttack();
-            }
-            else if (distanceToPlayer <= enemy_Charge_Radius && canCharge && !_isTelegraphing && !_isCharging)
-            {
-                // Within charge range - start telegraphing
                 _currentAttackState = AttackState.TelegraphingCharge;
                 StartChargeTelegraph();
             }
-            else if (distanceToPlayer <= enemy_Dash_Radius && canDash && !_isDashing && !_isTelegraphing && !_isCharging)
+            // Check for melee attack if very close
+            else if (distanceToPlayer <= enemy_Melee_Radius && Time.time - _lastAttackTime > attackCooldown)
             {
-                // Within dash range but not melee or charge - start dash
-                _currentAttackState = AttackState.Dashing;
-                StartDash();
+                _currentAttackState = AttackState.MeleeAttack;
+                PerformMeleeAttack();
             }
-            else if (!_isTelegraphing && !_isCharging)
+            // Default: maintain orbit
+            else
             {
-                // Too far for attacks - move towards player
-                _currentAttackState = AttackState.Idle;
+                _currentAttackState = AttackState.Orbiting;
             }
         }
 
@@ -444,73 +436,79 @@ namespace MoreMountains.TopDownEngine
         {
             if (player == null) return;
             
-            // Update dash behavior if dashing
-            UpdateDashMovement();
-            
-            // Only move if not attacking or if attackWhileMoving is true
-            if (_currentAttackState == AttackState.MeleeAttack && !attackWhileMoving)
+            // If charging, movement is handled by charge logic
+            if (_isCharging)
             {
-                _movement = Vector2.zero;
+                Vector2 direction = ((Vector2)player.position - (Vector2)transform.position).normalized;
+                _movement = direction;
                 return;
             }
             
-            // If dashing or charging, movement is already set by their respective methods
-            if (_isDashing || _isCharging) return;
-            
-            // During telegraphing, stop moving
+            // If telegraphing, stop moving
             if (_isTelegraphing)
             {
                 _movement = Vector2.zero;
                 return;
             }
             
-            // Calculate direction to player
-            Vector2 direction = ((Vector2)player.position - (Vector2)transform.position).normalized;
+            // If attacking in place, stop moving
+            if (_currentAttackState == AttackState.MeleeAttack && !attackWhileMoving)
+            {
+                _movement = Vector2.zero;
+                return;
+            }
+            
+            // Calculate orbit position
+            CalculateOrbitPosition();
+            
+            // Move toward orbit position
+            Vector2 directionToOrbit = (_targetOrbitPosition - (Vector2)transform.position).normalized;
             
             // Add avoidance from other enemies
             Vector2 avoidance = CalculateAvoidance();
             
             // Combine movement with avoidance
-            _movement = (direction + avoidance * avoidanceStrength).normalized;
+            _movement = (directionToOrbit + avoidance * avoidanceStrength).normalized;
+            
+            // Check if reached orbit position
+            float distanceToOrbit = Vector2.Distance(transform.position, _targetOrbitPosition);
+            _hasReachedOrbitPosition = distanceToOrbit < 0.5f;
         }
 
         /// <summary>
-        /// Starts a dash towards the player's current position
+        /// Calculates the target orbit position around the player
         /// </summary>
-        private void StartDash()
+        private void CalculateOrbitPosition()
         {
-            _isDashing = true;
-            _dashStartTime = Time.time;
-            _lastDashTime = Time.time;
-            _lastAttackTime = Time.time;
-            _hasDealtDashDamage = false;
+            if (player == null) return;
             
-            // Capture the player's position at the start of the dash
-            if (player != null)
+            // Only recalculate if cooldown has passed
+            if (Time.time - _lastRepositionTime < reposition_Cooldown && _targetOrbitPosition != Vector2.zero)
             {
-                _dashTargetPosition = player.position;
-            }
-        }
-
-        /// <summary>
-        /// Updates dash behavior
-        /// </summary>
-        private void UpdateDash()
-        {
-            if (!_isDashing) return;
-            
-            // Check if dash duration is over
-            if (Time.time - _dashStartTime >= _dashDuration)
-            {
-                _isDashing = false;
-                _currentAttackState = AttackState.Idle;
                 return;
             }
             
-            // Move towards the captured target position (not current player position)
-            Vector2 direction = (_dashTargetPosition - (Vector2)transform.position).normalized;
-            _movement = direction;
+            // Calculate base orbit position
+            // Distribute enemies around the player by using their instance ID for variation
+            _orbitAngle = (GetInstanceID() % 360) * Mathf.Deg2Rad;
+            
+            // Add time-based variation for organic movement
+            float timeVariation = Mathf.Sin(Time.time * 0.5f) * 0.3f;
+            _orbitAngle += timeVariation;
+            
+            // Calculate position on orbit
+            Vector2 orbitDirection = new Vector2(Mathf.Cos(_orbitAngle), Mathf.Sin(_orbitAngle));
+            
+            // Apply random offset for natural formation
+            Vector2 randomOffset = Random.insideUnitCircle * flank_Position_Offset;
+            
+            // Calculate final orbit position
+            _targetOrbitPosition = (Vector2)player.position + orbitDirection * flank_Distance + randomOffset;
+            
+            _lastRepositionTime = Time.time;
+            _hasReachedOrbitPosition = false;
         }
+
 
         /// <summary>
         /// Calculates avoidance force from other enemies
@@ -548,16 +546,6 @@ namespace MoreMountains.TopDownEngine
             return avoidance;
         }
 
-        /// <summary>
-        /// Updates dash behavior during movement calculation
-        /// </summary>
-        private void UpdateDashMovement()
-        {
-            if (_isDashing)
-            {
-                UpdateDash();
-            }
-        }
 
         /// <summary>
         /// Starts the charge telegraph phase
@@ -592,7 +580,7 @@ namespace MoreMountains.TopDownEngine
                 if (Time.time - _chargeStartTime >= _chargeDuration)
                 {
                     _isCharging = false;
-                    _currentAttackState = AttackState.Idle;
+                    _currentAttackState = AttackState.Orbiting;
                 }
                 else
                 {
@@ -607,45 +595,21 @@ namespace MoreMountains.TopDownEngine
         }
 
         /// <summary>
-        /// Handles collision detection for dash and charge attacks
+        /// Handles collision detection for charge attacks
         /// </summary>
         private void OnTriggerEnter2D(Collider2D other)
         {
             // Check if we hit the player
             if (other.CompareTag(playerTag))
             {
-                // Deal dash damage if dashing
-                if (_isDashing && !_hasDealtDashDamage)
-                {
-                    DealDashDamage(other);
-                }
                 // Deal charge damage if charging
-                else if (_isCharging && !_hasDealtChargeDamage)
+                if (_isCharging && !_hasDealtChargeDamage)
                 {
                     DealChargeDamage(other);
                 }
             }
         }
 
-        /// <summary>
-        /// Deals dash damage to the target
-        /// </summary>
-        private void DealDashDamage(Collider2D target)
-        {
-            // Get the Health component from the target
-            var targetHealth = target.GetComponent<Health>();
-            if (targetHealth != null)
-            {
-                // Deal damage
-                targetHealth.Damage(dashDamage, gameObject, 0f, 0f, Vector2.zero, null);
-                _hasDealtDashDamage = true;
-                
-                if (ShowDebugInfo)
-                {
-                    Debug.Log($"ChaserEnemy: Dealt {dashDamage} dash damage to {target.name}");
-                }
-            }
-        }
 
         /// <summary>
         /// Deals charge damage to the target
@@ -690,10 +654,10 @@ namespace MoreMountains.TopDownEngine
         {
             float currentSpeed = moveSpeed;
             
-            // Apply dash speed multiplier if dashing
-            if (_isDashing)
+            // Apply speed boost during charge
+            if (_isCharging)
             {
-                currentSpeed *= dashSpeedMultiplier;
+                currentSpeed *= 2.5f; // Charge speed multiplier
             }
             
             rb.linearVelocity = _movement * currentSpeed;
@@ -748,37 +712,38 @@ namespace MoreMountains.TopDownEngine
         {
             if (player == null) return;
             
+            // Draw flank distance orbit
+            Gizmos.color = Color.cyan;
+            Gizmos.DrawWireSphere(player.position, flank_Distance);
+            
+            // Draw flank distance with max offset
+            Gizmos.color = new Color(0, 1, 1, 0.3f);
+            Gizmos.DrawWireSphere(player.position, flank_Distance + flank_Position_Offset);
+            Gizmos.DrawWireSphere(player.position, flank_Distance - flank_Position_Offset);
+            
             // Draw charge radius
             Gizmos.color = Color.orange;
             Gizmos.DrawWireSphere(player.position, enemy_Charge_Radius);
-            
-            // Draw dash radius
-            Gizmos.color = Color.yellow;
-            Gizmos.DrawWireSphere(player.position, enemy_Dash_Radius);
             
             // Draw melee radius
             Gizmos.color = Color.red;
             Gizmos.DrawWireSphere(player.position, enemy_Melee_Radius);
             
-            // Draw avoidance radius around this enemy
-            Gizmos.color = Color.green;
+            // Draw target orbit position
+            if (_targetOrbitPosition != Vector2.zero)
+            {
+                Gizmos.color = Color.green;
+                Gizmos.DrawWireSphere(_targetOrbitPosition, 0.3f);
+                Gizmos.DrawLine(transform.position, _targetOrbitPosition);
+            }
+            
+            // Draw avoidance radius
+            Gizmos.color = Color.yellow;
             Gizmos.DrawWireSphere(transform.position, avoidanceRadius);
             
-            // Draw minimum distance around this enemy
-            Gizmos.color = Color.blue;
-            Gizmos.DrawWireSphere(transform.position, minEnemyDistance);
-            
             // Draw line to player
-            Gizmos.color = Color.cyan;
+            Gizmos.color = Color.white;
             Gizmos.DrawLine(transform.position, player.position);
-            
-            // Draw dash target if dashing
-            if (_isDashing && _dashTargetPosition != Vector2.zero)
-            {
-                Gizmos.color = Color.yellow;
-                Gizmos.DrawWireSphere(_dashTargetPosition, 0.3f);
-                Gizmos.DrawLine(transform.position, _dashTargetPosition);
-            }
             
             // Draw current state indicator
             Gizmos.color = GetStateColor();
@@ -792,8 +757,7 @@ namespace MoreMountains.TopDownEngine
         {
             switch (_currentAttackState)
             {
-                case AttackState.Idle: return Color.white;
-                case AttackState.Dashing: return Color.yellow;
+                case AttackState.Orbiting: return Color.cyan;
                 case AttackState.TelegraphingCharge: return Color.orange;
                 case AttackState.Charging: return Color.red;
                 case AttackState.MeleeAttack: return Color.magenta;
@@ -805,28 +769,23 @@ namespace MoreMountains.TopDownEngine
         {
             if (ShowDebugInfo)
             {
-                float timeSinceLastDash = Time.time - _lastDashTime;
                 float timeSinceLastCharge = Time.time - _lastChargeTime;
-                bool canDash = timeSinceLastDash > dashCooldown;
                 bool canCharge = timeSinceLastCharge > chargeCooldown;
                 
                 GUI.Label(new Rect(10, 10, 300, 20), $"Player: {(player != null ? player.name : "Not Found")}");
                 GUI.Label(new Rect(10, 30, 300, 20), $"Movement: {_movement}");
-                GUI.Label(new Rect(10, 50, 300, 20), $"Speed: {(rb != null ? rb.linearVelocity.magnitude.ToString("F2") : "No Rigidbody2D")}");
+                GUI.Label(new Rect(10, 50, 300, 20), $"Speed: {(rb != null ? rb.linearVelocity.magnitude.ToString("F2") : "No RB")}");
                 GUI.Label(new Rect(10, 70, 300, 20), $"Attack State: {_currentAttackState}");
-                GUI.Label(new Rect(10, 90, 300, 20), $"Is Dashing: {_isDashing}");
-                GUI.Label(new Rect(10, 110, 300, 20), $"Is Telegraphing: {_isTelegraphing}");
-                GUI.Label(new Rect(10, 130, 300, 20), $"Is Charging: {_isCharging}");
-                GUI.Label(new Rect(10, 150, 300, 20), $"Can Dash: {canDash}");
-                GUI.Label(new Rect(10, 170, 300, 20), $"Can Charge: {canCharge}");
-                GUI.Label(new Rect(10, 190, 300, 20), $"Dash Cooldown: {(canDash ? "Ready" : $"{dashCooldown - timeSinceLastDash:F1}s")}");
-                GUI.Label(new Rect(10, 210, 300, 20), $"Charge Cooldown: {(canCharge ? "Ready" : $"{chargeCooldown - timeSinceLastCharge:F1}s")}");
-                GUI.Label(new Rect(10, 230, 300, 20), $"Dash Target: {_dashTargetPosition}");
-                GUI.Label(new Rect(10, 250, 300, 20), $"Distance to Player: {(player != null ? Vector2.Distance(transform.position, player.position).ToString("F2") : "N/A")}");
-                GUI.Label(new Rect(10, 270, 300, 20), $"Health: {(_health != null ? _health.CurrentHealth.ToString("F1") : "No Health")}");
-                GUI.Label(new Rect(10, 290, 300, 20), $"Has Dropped Loot: {_hasDroppedLoot}");
-                GUI.Label(new Rect(10, 310, 300, 20), $"Drop Rate: {dropRate:P0}");
-                GUI.Label(new Rect(10, 330, 300, 20), $"Drop Amount: {dropAmount}");
+                GUI.Label(new Rect(10, 90, 300, 20), $"Is Telegraphing: {_isTelegraphing}");
+                GUI.Label(new Rect(10, 110, 300, 20), $"Is Charging: {_isCharging}");
+                GUI.Label(new Rect(10, 130, 300, 20), $"Orbit Position: {_targetOrbitPosition}");
+                GUI.Label(new Rect(10, 150, 300, 20), $"At Orbit: {_hasReachedOrbitPosition}");
+                GUI.Label(new Rect(10, 170, 300, 20), $"Distance to Player: {(player != null ? Vector2.Distance(transform.position, player.position).ToString("F2") : "N/A")}");
+                GUI.Label(new Rect(10, 190, 300, 20), $"Charge Cooldown: {Mathf.Max(0, chargeCooldown - (Time.time - _lastChargeTime)):F1}s");
+                GUI.Label(new Rect(10, 210, 300, 20), $"Health: {(_health != null ? _health.CurrentHealth.ToString("F1") : "No Health")}");
+                GUI.Label(new Rect(10, 230, 300, 20), $"Has Dropped Loot: {_hasDroppedLoot}");
+                GUI.Label(new Rect(10, 250, 300, 20), $"Drop Rate: {dropRate:P0}");
+                GUI.Label(new Rect(10, 270, 300, 20), $"Drop Amount: {dropAmount}");
             }
         }
 
@@ -878,3 +837,4 @@ namespace MoreMountains.TopDownEngine
         }
     }
 }
+
