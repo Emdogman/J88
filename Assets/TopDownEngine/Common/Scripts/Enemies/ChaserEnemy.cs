@@ -123,12 +123,6 @@ namespace MoreMountains.TopDownEngine
         [Tooltip("Number of coin items to drop")]
         [SerializeField] private int coinDropAmount = 1;
         
-        [Tooltip("Rate at which enemies drop health pickups (0-1, where 1 = 100% chance)")]
-        [SerializeField] private float healthDropRate = 0.3f;
-        
-        [Tooltip("Health pickup prefab to drop when enemy dies")]
-        [SerializeField] private GameObject healthDropPrefab;
-        
         [Tooltip("Random offset for drop position")]
         [SerializeField] private float dropOffset = 0.5f;
 
@@ -1067,56 +1061,12 @@ namespace MoreMountains.TopDownEngine
 
         /// <summary>
         /// Drops loot based on drop rate and amount
-        /// Enemies can drop either coins OR health pickup, not both
+        /// Enemies only drop coins (koalacoinpicker)
         /// </summary>
         private void DropLoot()
         {
-            // Decide what to drop: health pickup or coins
-            // Roll for health pickup first (since it's rarer/more valuable)
-            float healthRoll = Random.Range(0f, 1f);
-            
-            if (healthRoll <= healthDropRate && healthDropPrefab != null)
-            {
-                // Drop health pickup
-                DropHealthPickup();
-            }
-            else
-            {
-                // Try to drop coins instead
-                DropCoins();
-            }
-        }
-        
-        /// <summary>
-        /// Drops health pickup at enemy death location
-        /// </summary>
-        private void DropHealthPickup()
-        {
-            if (healthDropPrefab == null)
-            {
-                if (ShowDebugInfo)
-                {
-                    Debug.LogWarning($"ChaserEnemy: No health drop prefab assigned to {gameObject.name}");
-                }
-                return;
-            }
-            
-            // Calculate random drop position
-            Vector3 randomOffset = new Vector3(
-                Random.Range(-dropOffset, dropOffset),
-                Random.Range(-dropOffset, dropOffset),
-                0f
-            );
-            
-            Vector3 dropPosition = transform.position + randomOffset;
-            
-            // Instantiate the health pickup
-            GameObject droppedHealth = Instantiate(healthDropPrefab, dropPosition, Quaternion.identity);
-            
-            if (ShowDebugInfo)
-            {
-                Debug.Log($"ChaserEnemy: Dropped health pickup at {dropPosition}");
-            }
+            // Drop coins
+            DropCoins();
         }
         
         /// <summary>
