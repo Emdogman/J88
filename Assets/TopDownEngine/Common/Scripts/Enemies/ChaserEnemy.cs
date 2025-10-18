@@ -51,10 +51,13 @@ namespace MoreMountains.TopDownEngine
         [SerializeField] private float rotationSpeed = 180f;
         
         [Tooltip("Radius for enemy avoidance behavior")]
-        [SerializeField] private float avoidanceRadius = 0.5f;
+        [SerializeField] private float avoidanceRadius = 1.5f;
         
         [Tooltip("Strength of avoidance force")]
-        [SerializeField] private float avoidanceStrength = 0.3f;
+        [SerializeField] private float avoidanceStrength = 1.0f;
+        
+        [Tooltip("Minimum distance to maintain from other enemies")]
+        [SerializeField] private float minEnemyDistance = 1.0f;
         
         [Tooltip("Layer mask for other enemies to avoid")]
         [SerializeField] private LayerMask enemyLayerMask = -1;
@@ -120,6 +123,7 @@ namespace MoreMountains.TopDownEngine
         private float _dashStartTime;
         private float _dashDuration = 0.5f;
         private bool _hasDealtDashDamage = false;
+        private Vector2 _dashTargetPosition;
         
         // Charge attack management
         private bool _isTelegraphing = false;
@@ -440,7 +444,7 @@ namespace MoreMountains.TopDownEngine
         }
 
         /// <summary>
-        /// Starts a dash towards the player
+        /// Starts a dash towards the player's current position
         /// </summary>
         private void StartDash()
         {
@@ -449,6 +453,12 @@ namespace MoreMountains.TopDownEngine
             _lastDashTime = Time.time;
             _lastAttackTime = Time.time;
             _hasDealtDashDamage = false;
+            
+            // Capture the player's position at the start of the dash
+            if (player != null)
+            {
+                _dashTargetPosition = player.position;
+            }
         }
 
         /// <summary>
@@ -466,12 +476,9 @@ namespace MoreMountains.TopDownEngine
                 return;
             }
             
-            // Move towards player at dash speed
-            if (player != null)
-            {
-                Vector2 direction = ((Vector2)player.position - (Vector2)transform.position).normalized;
-                _movement = direction;
-            }
+            // Move towards the captured target position (not current player position)
+            Vector2 direction = (_dashTargetPosition - (Vector2)transform.position).normalized;
+            _movement = direction;
         }
 
         /// <summary>
@@ -492,7 +499,17 @@ namespace MoreMountains.TopDownEngine
                 float dist = away.magnitude;
                 if (dist > 0f && dist < avoidanceRadius)
                 {
+                    // Calculate avoidance force
                     float distFactor = 1f - (dist / avoidanceRadius);
+                    
+                    // Apply stronger force if below minimum distance
+                    if (dist < minEnemyDistance)
+                    {
+                        distFactor *= 2f; // Double the avoidance force
+                    }
+                    
+                    // Apply exponential falloff for stronger separation
+                    distFactor = Mathf.Pow(distFactor, 2f);
                     avoidance += away / dist * distFactor;
                 }
             }
@@ -712,9 +729,25 @@ namespace MoreMountains.TopDownEngine
             Gizmos.color = Color.red;
             Gizmos.DrawWireSphere(player.position, enemy_Melee_Radius);
             
+            // Draw avoidance radius around this enemy
+            Gizmos.color = Color.green;
+            Gizmos.DrawWireSphere(transform.position, avoidanceRadius);
+            
+            // Draw minimum distance around this enemy
+            Gizmos.color = Color.blue;
+            Gizmos.DrawWireSphere(transform.position, minEnemyDistance);
+            
             // Draw line to player
             Gizmos.color = Color.cyan;
             Gizmos.DrawLine(transform.position, player.position);
+            
+            // Draw dash target if dashing
+            if (_isDashing && _dashTargetPosition != Vector2.zero)
+            {
+                Gizmos.color = Color.yellow;
+                Gizmos.DrawWireSphere(_dashTargetPosition, 0.3f);
+                Gizmos.DrawLine(transform.position, _dashTargetPosition);
+            }
             
             // Draw current state indicator
             Gizmos.color = GetStateColor();
@@ -757,7 +790,8 @@ namespace MoreMountains.TopDownEngine
                 GUI.Label(new Rect(10, 170, 300, 20), $"Can Charge: {canCharge}");
                 GUI.Label(new Rect(10, 190, 300, 20), $"Dash Cooldown: {(canDash ? "Ready" : $"{dashCooldown - timeSinceLastDash:F1}s")}");
                 GUI.Label(new Rect(10, 210, 300, 20), $"Charge Cooldown: {(canCharge ? "Ready" : $"{chargeCooldown - timeSinceLastCharge:F1}s")}");
-                GUI.Label(new Rect(10, 230, 300, 20), $"Distance to Player: {(player != null ? Vector2.Distance(transform.position, player.position).ToString("F2") : "N/A")}");
+                GUI.Label(new Rect(10, 230, 300, 20), $"Dash Target: {_dashTargetPosition}");
+                GUI.Label(new Rect(10, 250, 300, 20), $"Distance to Player: {(player != null ? Vector2.Distance(transform.position, player.position).ToString("F2") : "N/A")}");
             }
         }
     }
