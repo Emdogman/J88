@@ -634,7 +634,7 @@ MonoBehaviour:
   chargeCooldown: 5
   flank_Distance: 3
   flank_Position_Offset: 1
-  reposition_Cooldown: 2
+  reposition_Cooldown: 3
   moveSpeed: 8
   rotationSpeed: 180
   avoidanceRadius: 0.5

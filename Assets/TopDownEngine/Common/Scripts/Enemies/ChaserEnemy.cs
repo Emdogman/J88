@@ -134,6 +134,7 @@ namespace MoreMountains.TopDownEngine
         private float _lastRepositionTime;
         private bool _hasReachedOrbitPosition;
         private float _orbitAngle;
+        private Vector2 _lastPlayerPosition;
         
         // Charge attack management
         private bool _isTelegraphing = false;
@@ -482,8 +483,17 @@ namespace MoreMountains.TopDownEngine
         {
             if (player == null) return;
             
-            // Only recalculate if cooldown has passed
-            if (Time.time - _lastRepositionTime < reposition_Cooldown && _targetOrbitPosition != Vector2.zero)
+            Vector2 currentPlayerPosition = player.position;
+            float playerMovedDistance = Vector2.Distance(currentPlayerPosition, _lastPlayerPosition);
+            
+            // Only recalculate if:
+            // 1. Cooldown has passed AND (we don't have a target position OR player moved significantly)
+            // 2. OR if we don't have a target position yet
+            bool shouldRecalculate = (Time.time - _lastRepositionTime >= reposition_Cooldown && 
+                                    (_targetOrbitPosition == Vector2.zero || playerMovedDistance > 1f)) ||
+                                    _targetOrbitPosition == Vector2.zero;
+            
+            if (!shouldRecalculate)
             {
                 return;
             }
@@ -492,21 +502,26 @@ namespace MoreMountains.TopDownEngine
             // Distribute enemies around the player by using their instance ID for variation
             _orbitAngle = (GetInstanceID() % 360) * Mathf.Deg2Rad;
             
-            // Add time-based variation for organic movement
-            float timeVariation = Mathf.Sin(Time.time * 0.5f) * 0.3f;
-            _orbitAngle += timeVariation;
+            // Remove time-based variation to prevent twitching
+            // _orbitAngle += timeVariation; // Commented out to prevent twitching
             
             // Calculate position on orbit
             Vector2 orbitDirection = new Vector2(Mathf.Cos(_orbitAngle), Mathf.Sin(_orbitAngle));
             
-            // Apply random offset for natural formation
+            // Apply random offset for natural formation (only when recalculating)
             Vector2 randomOffset = Random.insideUnitCircle * flank_Position_Offset;
             
             // Calculate final orbit position
-            _targetOrbitPosition = (Vector2)player.position + orbitDirection * flank_Distance + randomOffset;
+            _targetOrbitPosition = currentPlayerPosition + orbitDirection * flank_Distance + randomOffset;
             
             _lastRepositionTime = Time.time;
+            _lastPlayerPosition = currentPlayerPosition;
             _hasReachedOrbitPosition = false;
+            
+            if (ShowDebugInfo)
+            {
+                Debug.Log($"ChaserEnemy: Recalculated orbit position to {_targetOrbitPosition} (Player moved: {playerMovedDistance:F2})");
+            }
         }
 
 
