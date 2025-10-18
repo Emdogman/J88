@@ -16,7 +16,7 @@ namespace MoreMountains.TopDownEngine
         
         [Tooltip("Speed of rotation (0 = instant, higher = smoother)")]
         [Range(0f, 20f)]
-        public float rotationSpeed = 0f;
+        public float rotationSpeed = 5f;
         
         [Tooltip("Rotation offset to adjust sprite facing direction (0° = right, 90° = up, -90° = down, 180° = left)")]
         [Range(-180f, 180f)]
@@ -83,21 +83,30 @@ namespace MoreMountains.TopDownEngine
             
             if (!AbilityAuthorized || _camera == null) return;
             
-            // Get mouse position in world space
+            // Only track mouse movement for debug purposes
+            // Rotation is now handled in LateUpdate to sync with physics
             Vector3 mouseWorldPosition = GetMouseWorldPosition();
-            
-            // Always calculate and apply rotation (not just when mouse is moving)
-            float targetAngle = CalculateRotationAngle(mouseWorldPosition);
-            ApplyRotation(targetAngle);
-            
-            // Update mouse movement tracking for debug purposes
             _isMouseMoving = Vector3.Distance(mouseWorldPosition, _lastMousePosition) > 0.1f;
             _lastMousePosition = mouseWorldPosition;
             
             if (showDebugInfo && _isMouseMoving)
             {
+                float targetAngle = CalculateRotationAngle(mouseWorldPosition);
                 Debug.Log($"PlayerMouseRotation: Mouse at {mouseWorldPosition}, Target Angle: {targetAngle:F1}°");
             }
+        }
+        
+        /// <summary>
+        /// Apply rotation in LateUpdate to sync with physics and eliminate jitter
+        /// </summary>
+        protected virtual void LateUpdate()
+        {
+            if (!AbilityAuthorized || _camera == null) return;
+            
+            // Get mouse position and apply rotation AFTER all movement is complete
+            Vector3 mouseWorldPosition = GetMouseWorldPosition();
+            float targetAngle = CalculateRotationAngle(mouseWorldPosition);
+            ApplyRotation(targetAngle);
         }
 
         /// <summary>
