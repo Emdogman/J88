@@ -202,6 +202,15 @@ namespace Drunken
         }
         
         /// <summary>
+        /// Checks if the character is currently moving
+        /// </summary>
+        /// <returns>True if moving</returns>
+        public bool IsMoving()
+        {
+            return _isMoving;
+        }
+        
+        /// <summary>
         /// Resets animation to default state
         /// </summary>
         public void ResetAnimation()

@@ -9845,7 +9845,7 @@ Animator:
   m_GameObject: {fileID: 1358283918792732}
   m_Enabled: 1
   m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: 9267390d3e7154b40bc892e523f78502, type: 2}
+  m_Controller: {fileID: 9100000, guid: 90e933865f46ce142abd3a26ec9cacbf, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
@@ -9886,6 +9886,9 @@ GameObject:
   - component: {fileID: 4635989002324284277}
   - component: {fileID: 1435219058640531977}
   - component: {fileID: 5169137234291291860}
+  - component: {fileID: 2926122946861340738}
+  - component: {fileID: 2384063908152165542}
+  - component: {fileID: 1530617624430602312}
   m_Layer: 10
   m_Name: Koala
   m_TagString: Player
@@ -10520,7 +10523,7 @@ MonoBehaviour:
   BlockingMovementStates: 
   BlockingConditionStates: 
   BlockingWeaponStates: 
-  drunkenAnimatorController: {fileID: 9100000, guid: 9267390d3e7154b40bc892e523f78502,
+  drunkenAnimatorController: {fileID: 9100000, guid: 90e933865f46ce142abd3a26ec9cacbf,
     type: 2}
   normalAnimatorController: {fileID: 0}
   drunkenMovementThreshold: 0.1
@@ -10556,6 +10559,90 @@ MonoBehaviour:
   drunkenRunStateName: Drunken run
   movementThreshold: 0.1
   transitionDuration: 0.1
+--- !u!114 &2926122946861340738
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1498750440386690}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ac1526f0dccf1c54897c9d7e5de8b694, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Drunken.DrunkenLegsAnimationSetup
+  drunkenAnimatorController: {fileID: 9100000, guid: 9267390d3e7154b40bc892e523f78502,
+    type: 2}
+  normalAnimatorController: {fileID: 0}
+  drunkenLegsAnimatorController: {fileID: 9100000, guid: 90e933865f46ce142abd3a26ec9cacbf,
+    type: 2}
+  normalLegsAnimatorController: {fileID: 0}
+  idleClip: {fileID: 0}
+  drunkenRunClip: {fileID: 0}
+  drunkenFeetClip: {fileID: 0}
+  autoSetupOnStart: 1
+  applyDrunkenControllerOnStart: 1
+  applyDrunkenLegsControllerOnStart: 1
+--- !u!114 &2384063908152165542
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1498750440386690}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ab4f5e6b7e3e36b468c43727af5d6986, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Drunken.DrunkenLegsCharacterAnimation
+  AbilityStartSfx: {fileID: 0}
+  AbilityInProgressSfx: {fileID: 0}
+  AbilityStopSfx: {fileID: 0}
+  AbilityStartFeedbacks: {fileID: 0}
+  AbilityStopFeedbacks: {fileID: 0}
+  AbilityPermitted: 1
+  BlockingMovementStates: 
+  BlockingConditionStates: 
+  BlockingWeaponStates: 
+  drunkenLegsAnimatorController: {fileID: 9100000, guid: 90e933865f46ce142abd3a26ec9cacbf,
+    type: 2}
+  normalLegsAnimatorController: {fileID: 0}
+  drunkenMovementThreshold: 0.1
+  animationTransitionDuration: 0.2
+  drunkenAnimationSpeed: 1.2
+  moveParameterName: Move
+  drunkenParameterName: Drunken
+  speedParameterName: Speed
+  syncWithMainAnimation: 1
+  syncAnimationSpeed: 1
+--- !u!114 &1530617624430602312
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1498750440386690}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 359d11747971f2547991daaf5ecac66a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Drunken.DrunkenLegsAnimationController
+  AbilityStartSfx: {fileID: 0}
+  AbilityInProgressSfx: {fileID: 0}
+  AbilityStopSfx: {fileID: 0}
+  AbilityStartFeedbacks: {fileID: 0}
+  AbilityStopFeedbacks: {fileID: 0}
+  AbilityPermitted: 1
+  BlockingMovementStates: 
+  BlockingConditionStates: 
+  BlockingWeaponStates: 
+  legsAnimator: {fileID: 0}
+  moveParameterName: Move
+  idleStateName: New State
+  drunkenFeetStateName: Drunken feet
+  movementThreshold: 0.1
+  transitionDuration: 0.1
+  syncWithMainAnimation: 1
 --- !u!1 &1561075265052736
 GameObject:
   m_ObjectHideFlags: 0
