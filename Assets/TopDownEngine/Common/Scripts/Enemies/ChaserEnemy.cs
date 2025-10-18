@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
+using MoreMountains.Feedbacks;
 
 namespace MoreMountains.TopDownEngine
 {
@@ -134,6 +135,10 @@ namespace MoreMountains.TopDownEngine
         [Header("Attack Interruption")]
         [Tooltip("How long the enemy stays interrupted when hit by player (seconds)")]
         [SerializeField] private float attackInterruptDuration = 0.5f;
+
+        [Header("Feedbacks")]
+        [Tooltip("Feedbacks to play when the enemy starts a melee attack")]
+        public MMFeedbacks MeleeAttackStartFeedbacks;
         
         [Header("Debug")]
         [Tooltip("Show debug information")]
@@ -838,6 +843,9 @@ namespace MoreMountains.TopDownEngine
             var meleeWeapon = _characterHandleWeapon.CurrentWeapon.GetComponent<MeleeWeapon>();
             if (meleeWeapon != null)
             {
+                // Play melee attack start feedbacks
+                MeleeAttackStartFeedbacks?.PlayFeedbacks(transform.position);
+                
                 // Trigger attack animation
                 TriggerAttackAnimation();
                 
