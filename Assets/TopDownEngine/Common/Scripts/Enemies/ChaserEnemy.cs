@@ -48,7 +48,7 @@ namespace MoreMountains.TopDownEngine
         [Tooltip("How fast the enemy moves")]
         [SerializeField] private float moveSpeed = 3f;
         
-        [Tooltip("How fast the enemy rotates to face movement direction")]
+        [Tooltip("How fast the enemy rotates to face the player (degrees per second)")]
         [SerializeField] private float rotationSpeed = 180f;
         
         [Tooltip("Radius for enemy avoidance behavior")]
@@ -356,7 +356,7 @@ namespace MoreMountains.TopDownEngine
             if (player == null) return;
             
             MoveEnemy();
-            RotateTowardsMovement();
+            RotateTowardsPlayer();
         }
 
         /// <summary>
@@ -897,21 +897,17 @@ namespace MoreMountains.TopDownEngine
         }
 
         /// <summary>
-        /// Rotates the enemy to face movement direction
+        /// Rotates the enemy to always face the player
         /// </summary>
-        private void RotateTowardsMovement()
+        private void RotateTowardsPlayer()
         {
-            // Use smoothed movement for more stable rotation
-            Vector2 movementDirection = _smoothedMovement;
+            if (player == null) return;
             
-            // Only rotate if moving significantly (avoid rotation jitter when idle)
-            if (movementDirection.magnitude < movementDeadZone)
-            {
-                return;
-            }
+            // Always face the player, regardless of movement
+            Vector2 directionToPlayer = (player.position - transform.position).normalized;
             
-            // Calculate target rotation angle from movement direction
-            float targetAngle = Mathf.Atan2(movementDirection.y, movementDirection.x) * Mathf.Rad2Deg;
+            // Calculate target rotation angle to face player
+            float targetAngle = Mathf.Atan2(directionToPlayer.y, directionToPlayer.x) * Mathf.Rad2Deg;
             
             // Apply 90-degree offset if needed (depends on sprite orientation)
             // Unity sprites typically face right by default
