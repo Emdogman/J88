@@ -25,6 +25,22 @@ namespace MoreMountains.TopDownEngine
         [Tooltip("Layer mask for other enemies to avoid")]
         [SerializeField] private LayerMask enemyLayerMask = -1;
 
+        [Header("Attack Settings")]
+        [Tooltip("Enable continuous movement while attacking")]
+        [SerializeField] private bool attackWhileMoving = true;
+        
+        [Tooltip("Attack range - how close to get before attacking")]
+        [SerializeField] private float attackRange = 1.5f;
+        
+        [Tooltip("Attack damage")]
+        [SerializeField] private float attackDamage = 10f;
+        
+        [Tooltip("Attack cooldown in seconds")]
+        [SerializeField] private float attackCooldown = 1f;
+        
+        [Tooltip("Layer mask for what the enemy can attack")]
+        [SerializeField] private LayerMask attackLayerMask = -1;
+
         [Header("References")]
         [Tooltip("The player transform to chase")]
         [SerializeField] private Transform player;
