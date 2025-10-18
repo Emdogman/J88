@@ -186,6 +186,21 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 723903221, guid: c7c94ee3d2e586e45bad7973ffa27568,
         type: 3}
+    - target: {fileID: 8617648886571333694, guid: a200a0b4274de1d4da0e68119fadcbbb,
+        type: 3}
+      propertyPath: m_Radius
+      value: 0.2508761
+      objectReference: {fileID: 0}
+    - target: {fileID: 8617648886571333694, guid: a200a0b4274de1d4da0e68119fadcbbb,
+        type: 3}
+      propertyPath: m_Offset.x
+      value: 0.04217869
+      objectReference: {fileID: 0}
+    - target: {fileID: 8617648886571333694, guid: a200a0b4274de1d4da0e68119fadcbbb,
+        type: 3}
+      propertyPath: m_Offset.y
+      value: -0.042375237
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects:
