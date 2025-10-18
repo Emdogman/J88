@@ -63,6 +63,28 @@ namespace MoreMountains.TopDownEngine
         [Tooltip("Layer mask for other enemies to avoid")]
         [SerializeField] private LayerMask enemyLayerMask = -1;
 
+        [Header("AI Intelligence Settings")]
+        [Tooltip("Enable movement prediction for more accurate attacks")]
+        [SerializeField] private bool usePredictiveAttacks = true;
+        
+        [Tooltip("How far ahead to predict player position (seconds)")]
+        [SerializeField] private float predictionTime = 0.3f;
+        
+        [Tooltip("Min and max charge cooldown for unpredictability")]
+        [SerializeField] private Vector2 chargeCooldownRange = new Vector2(3.5f, 6f);
+        
+        [Tooltip("Chance to do a surprise attack (no telegraph) 0-1")]
+        [SerializeField] private float surpriseAttackChance = 0.15f;
+        
+        [Tooltip("How much to vary orbit distance for dynamic movement")]
+        [SerializeField] private float orbitDistanceVariation = 0.8f;
+        
+        [Tooltip("Enable strafing movement patterns")]
+        [SerializeField] private bool enableStrafing = true;
+        
+        [Tooltip("Time between strafing movements")]
+        [SerializeField] private float strafingInterval = 2.5f;
+
         [Header("Attack Settings")]
         [Tooltip("Enable continuous movement while attacking")]
         [SerializeField] private bool attackWhileMoving = true;
@@ -154,6 +176,11 @@ namespace MoreMountains.TopDownEngine
         
         // Loot drop tracking
         private bool _hasDroppedLoot;
+        
+        // AI Intelligence tracking
+        private float _lastStrafeTime;
+        private float _dynamicChargeCooldown;
+        private Rigidbody2D _playerRigidbody;
 
         private void Awake()
         {
@@ -387,6 +414,8 @@ namespace MoreMountains.TopDownEngine
             if (playerObject != null)
             {
                 player = playerObject.transform;
+                _playerRigidbody = playerObject.GetComponent<Rigidbody2D>();
+                
                 if (ShowDebugInfo)
                 {
                     Debug.Log($"ChaserEnemy: Found player '{playerObject.name}' with tag '{playerTag}'");
@@ -417,13 +446,49 @@ namespace MoreMountains.TopDownEngine
                 return;
             }
             
-            bool canCharge = Time.time - _lastChargeTime > chargeCooldown;
+            // Use dynamic charge cooldown for unpredictability
+            if (_dynamicChargeCooldown == 0)
+            {
+                _dynamicChargeCooldown = Random.Range(chargeCooldownRange.x, chargeCooldownRange.y);
+            }
+            
+            bool canCharge = Time.time - _lastChargeTime > _dynamicChargeCooldown;
             
             // Check for charge attack opportunity
             if (distanceToPlayer <= enemy_Charge_Radius && canCharge)
             {
-                _currentAttackState = AttackState.TelegraphingCharge;
-                StartChargeTelegraph();
+                // Randomly decide if this should be a surprise attack
+                bool doSurpriseAttack = Random.value < surpriseAttackChance;
+                
+                if (doSurpriseAttack)
+                {
+                    // Surprise attack - skip telegraph and charge immediately
+                    _isCharging = true;
+                    _chargeStartTime = Time.time;
+                    _lastChargeTime = Time.time;
+                    _hasDealtChargeDamage = false;
+                    _currentAttackState = AttackState.Charging;
+                    
+                    // Still predict target position for accuracy
+                    _chargeTargetPosition = PredictPlayerPosition();
+                    
+                    // Set new random cooldown for next charge
+                    _dynamicChargeCooldown = Random.Range(chargeCooldownRange.x, chargeCooldownRange.y);
+                    
+                    if (ShowDebugInfo)
+                    {
+                        Debug.Log("ChaserEnemy: Surprise charge attack!");
+                    }
+                }
+                else
+                {
+                    // Normal telegraph attack
+                    _currentAttackState = AttackState.TelegraphingCharge;
+                    StartChargeTelegraph();
+                    
+                    // Set new random cooldown for next charge
+                    _dynamicChargeCooldown = Random.Range(chargeCooldownRange.x, chargeCooldownRange.y);
+                }
             }
             // Check for melee attack if very close
             else if (distanceToPlayer <= enemy_Melee_Radius && Time.time - _lastAttackTime > attackCooldown)
@@ -484,8 +549,27 @@ namespace MoreMountains.TopDownEngine
             // Add avoidance from other enemies
             Vector2 avoidance = CalculateAvoidance();
             
-            // Combine movement with avoidance
-            _movement = (directionToOrbit + avoidance * avoidanceStrength).normalized;
+            // Add strafing for more dynamic movement
+            Vector2 strafeMovement = Vector2.zero;
+            if (enableStrafing && Time.time - _lastStrafeTime > strafingInterval)
+            {
+                // Randomly decide to strafe
+                if (Random.value < 0.5f)
+                {
+                    // Strafe perpendicular to direction to player
+                    Vector2 directionToPlayer = ((Vector2)player.position - (Vector2)transform.position).normalized;
+                    Vector2 perpendicular = Vector2.Perpendicular(directionToPlayer);
+                    
+                    // Randomly choose strafe direction
+                    float strafeDirection = Random.value < 0.5f ? 1f : -1f;
+                    strafeMovement = perpendicular * strafeDirection * 0.4f;
+                    
+                    _lastStrafeTime = Time.time;
+                }
+            }
+            
+            // Combine movement with avoidance and strafing
+            _movement = (directionToOrbit + avoidance * avoidanceStrength + strafeMovement).normalized;
             
             // Check if reached orbit position with larger tolerance to prevent constant repositioning
             float distanceToOrbit = Vector2.Distance(transform.position, _targetOrbitPosition);
@@ -533,8 +617,12 @@ namespace MoreMountains.TopDownEngine
             // Apply random offset for natural formation (only when recalculating)
             Vector2 randomOffset = Random.insideUnitCircle * flank_Position_Offset;
             
-            // Calculate final orbit position
-            _targetOrbitPosition = currentPlayerPosition + orbitDirection * flank_Distance + randomOffset;
+            // Apply dynamic orbit distance variation for less predictable movement
+            float dynamicOrbitDistance = flank_Distance + Random.Range(-orbitDistanceVariation, orbitDistanceVariation);
+            dynamicOrbitDistance = Mathf.Max(dynamicOrbitDistance, 1f); // Ensure it doesn't get too close
+            
+            // Calculate final orbit position with dynamic distance
+            _targetOrbitPosition = currentPlayerPosition + orbitDirection * dynamicOrbitDistance + randomOffset;
             
             _lastRepositionTime = Time.time;
             _lastPlayerPosition = currentPlayerPosition;
@@ -585,6 +673,31 @@ namespace MoreMountains.TopDownEngine
 
 
         /// <summary>
+        /// Predicts player position based on their current velocity
+        /// </summary>
+        private Vector2 PredictPlayerPosition()
+        {
+            if (player == null) return Vector2.zero;
+            
+            // If prediction is enabled and we have player rigidbody
+            if (usePredictiveAttacks && _playerRigidbody != null)
+            {
+                Vector2 playerVelocity = _playerRigidbody.linearVelocity;
+                Vector2 predictedPosition = (Vector2)player.position + (playerVelocity * predictionTime);
+                
+                if (ShowDebugInfo)
+                {
+                    Debug.Log($"ChaserEnemy: Predicted player position from {player.position} to {predictedPosition}");
+                }
+                
+                return predictedPosition;
+            }
+            
+            // Fall back to current position
+            return player.position;
+        }
+        
+        /// <summary>
         /// Starts the charge telegraph phase
         /// </summary>
         private void StartChargeTelegraph()
@@ -594,11 +707,8 @@ namespace MoreMountains.TopDownEngine
             _lastChargeTime = Time.time;
             _hasDealtChargeDamage = false;
             
-            // Lock onto player's current position as the charge target
-            if (player != null)
-            {
-                _chargeTargetPosition = player.position;
-            }
+            // Use predictive targeting for more accurate attacks
+            _chargeTargetPosition = PredictPlayerPosition();
         }
 
         /// <summary>

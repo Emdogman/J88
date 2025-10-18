@@ -898,6 +898,13 @@ MonoBehaviour:
   enemyLayerMask:
     serializedVersion: 2
     m_Bits: 8448
+  usePredictiveAttacks: 1
+  predictionTime: 0.3
+  chargeCooldownRange: {x: 3.5, y: 6}
+  surpriseAttackChance: 0.15
+  orbitDistanceVariation: 0.8
+  enableStrafing: 1
+  strafingInterval: 2.5
   attackWhileMoving: 1
   attackCooldown: 1
   attackLayerMask:
