@@ -4,8 +4,8 @@ using System.Collections.Generic;
 namespace MoreMountains.TopDownEngine
 {
     /// <summary>
-    /// Advanced enemy AI that surrounds the player using orbit positioning
-    /// Implements charge attacks and melee attacks using TopDownEngine weapon system
+    /// Advanced enemy AI that dashes at long distances and performs melee attacks when close
+    /// Implements dash damage and melee attacks using TopDownEngine weapon system
     /// </summary>
     [AddComponentMenu("TopDown Engine/Enemies/Chaser Enemy")]
     [RequireComponent(typeof(Character))]
@@ -19,11 +19,29 @@ namespace MoreMountains.TopDownEngine
         [Tooltip("Distance for default melee attack")]
         [SerializeField] private float enemy_Melee_Radius = 1.5f;
         
+        [Tooltip("Distance within which charge attack can begin")]
+        [SerializeField] private float enemy_Charge_Radius = 5f;
+        
+        [Tooltip("Time to telegraph before charge attack")]
+        [SerializeField] private float enemy_Charge_Telegraph_Time = 1.5f;
+        
         [Tooltip("Damage for default attack")]
         [SerializeField] private float default_Attack_Damage = 10f;
         
+        [Tooltip("High damage for charge attack")]
+        [SerializeField] private float enemy_Charge_Attack_Damage = 25f;
+        
         [Tooltip("Dash speed multiplier")]
         [SerializeField] private float dashSpeedMultiplier = 2f;
+        
+        [Tooltip("Damage dealt by dash attack")]
+        [SerializeField] private float dashDamage = 15f;
+        
+        [Tooltip("Cooldown between dash attacks in seconds")]
+        [SerializeField] private float dashCooldown = 3f;
+        
+        [Tooltip("Cooldown between charge attacks in seconds")]
+        [SerializeField] private float chargeCooldown = 5f;
 
         [Header("Movement Settings")]
         [Tooltip("How fast the enemy moves")]
@@ -77,6 +95,8 @@ namespace MoreMountains.TopDownEngine
         {
             Idle,
             Dashing,
+            TelegraphingCharge,
+            Charging,
             MeleeAttack
         }
 
@@ -94,9 +114,20 @@ namespace MoreMountains.TopDownEngine
         // Attack state management
         private AttackState _currentAttackState = AttackState.Idle;
         private float _lastAttackTime;
+        private float _lastDashTime;
+        private float _lastChargeTime;
         private bool _isDashing = false;
         private float _dashStartTime;
         private float _dashDuration = 0.5f;
+        private bool _hasDealtDashDamage = false;
+        
+        // Charge attack management
+        private bool _isTelegraphing = false;
+        private bool _isCharging = false;
+        private float _telegraphStartTime;
+        private float _chargeStartTime;
+        private float _chargeDuration = 0.8f;
+        private bool _hasDealtChargeDamage = false;
 
         private void Awake()
         {
@@ -340,6 +371,11 @@ namespace MoreMountains.TopDownEngine
             
             // Check if we can attack (not on cooldown)
             bool canAttack = Time.time - _lastAttackTime > attackCooldown;
+            bool canDash = Time.time - _lastDashTime > dashCooldown;
+            bool canCharge = Time.time - _lastChargeTime > chargeCooldown;
+            
+            // Update charge attack states
+            UpdateChargeAttack();
             
             if (distanceToPlayer <= enemy_Melee_Radius && canAttack)
             {
@@ -347,13 +383,19 @@ namespace MoreMountains.TopDownEngine
                 _currentAttackState = AttackState.MeleeAttack;
                 PerformMeleeAttack();
             }
-            else if (distanceToPlayer <= enemy_Dash_Radius && canAttack && !_isDashing)
+            else if (distanceToPlayer <= enemy_Charge_Radius && canCharge && !_isTelegraphing && !_isCharging)
             {
-                // Within dash range but not melee - start dash
+                // Within charge range - start telegraphing
+                _currentAttackState = AttackState.TelegraphingCharge;
+                StartChargeTelegraph();
+            }
+            else if (distanceToPlayer <= enemy_Dash_Radius && canDash && !_isDashing && !_isTelegraphing && !_isCharging)
+            {
+                // Within dash range but not melee or charge - start dash
                 _currentAttackState = AttackState.Dashing;
                 StartDash();
             }
-            else
+            else if (!_isTelegraphing && !_isCharging)
             {
                 // Too far for attacks - move towards player
                 _currentAttackState = AttackState.Idle;
@@ -377,8 +419,15 @@ namespace MoreMountains.TopDownEngine
                 return;
             }
             
-            // If dashing, movement is already set by UpdateDash()
-            if (_isDashing) return;
+            // If dashing or charging, movement is already set by their respective methods
+            if (_isDashing || _isCharging) return;
+            
+            // During telegraphing, stop moving
+            if (_isTelegraphing)
+            {
+                _movement = Vector2.zero;
+                return;
+            }
             
             // Calculate direction to player
             Vector2 direction = ((Vector2)player.position - (Vector2)transform.position).normalized;
@@ -397,7 +446,9 @@ namespace MoreMountains.TopDownEngine
         {
             _isDashing = true;
             _dashStartTime = Time.time;
+            _lastDashTime = Time.time;
             _lastAttackTime = Time.time;
+            _hasDealtDashDamage = false;
         }
 
         /// <summary>
@@ -457,6 +508,114 @@ namespace MoreMountains.TopDownEngine
             if (_isDashing)
             {
                 UpdateDash();
+            }
+        }
+
+        /// <summary>
+        /// Starts the charge telegraph phase
+        /// </summary>
+        private void StartChargeTelegraph()
+        {
+            _isTelegraphing = true;
+            _telegraphStartTime = Time.time;
+            _lastChargeTime = Time.time;
+            _hasDealtChargeDamage = false;
+        }
+
+        /// <summary>
+        /// Updates charge attack behavior
+        /// </summary>
+        private void UpdateChargeAttack()
+        {
+            if (_isTelegraphing)
+            {
+                // Check if telegraph time is over
+                if (Time.time - _telegraphStartTime >= enemy_Charge_Telegraph_Time)
+                {
+                    _isTelegraphing = false;
+                    _isCharging = true;
+                    _chargeStartTime = Time.time;
+                    _currentAttackState = AttackState.Charging;
+                }
+            }
+            else if (_isCharging)
+            {
+                // Check if charge duration is over
+                if (Time.time - _chargeStartTime >= _chargeDuration)
+                {
+                    _isCharging = false;
+                    _currentAttackState = AttackState.Idle;
+                }
+                else
+                {
+                    // Move towards player during charge
+                    if (player != null)
+                    {
+                        Vector2 direction = ((Vector2)player.position - (Vector2)transform.position).normalized;
+                        _movement = direction;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Handles collision detection for dash and charge attacks
+        /// </summary>
+        private void OnTriggerEnter2D(Collider2D other)
+        {
+            // Check if we hit the player
+            if (other.CompareTag(playerTag))
+            {
+                // Deal dash damage if dashing
+                if (_isDashing && !_hasDealtDashDamage)
+                {
+                    DealDashDamage(other);
+                }
+                // Deal charge damage if charging
+                else if (_isCharging && !_hasDealtChargeDamage)
+                {
+                    DealChargeDamage(other);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Deals dash damage to the target
+        /// </summary>
+        private void DealDashDamage(Collider2D target)
+        {
+            // Get the Health component from the target
+            var targetHealth = target.GetComponent<Health>();
+            if (targetHealth != null)
+            {
+                // Deal damage
+                targetHealth.Damage(dashDamage, gameObject, 0f, 0f, Vector2.zero, null);
+                _hasDealtDashDamage = true;
+                
+                if (ShowDebugInfo)
+                {
+                    Debug.Log($"ChaserEnemy: Dealt {dashDamage} dash damage to {target.name}");
+                }
+            }
+        }
+
+        /// <summary>
+        /// Deals charge damage to the target
+        /// </summary>
+        private void DealChargeDamage(Collider2D target)
+        {
+            // Get the Health component from the target
+            var targetHealth = target.GetComponent<Health>();
+            if (targetHealth != null)
+            {
+                // Deal high damage
+                targetHealth.Damage(enemy_Charge_Attack_Damage, gameObject, 0f, 0f, Vector2.zero, null);
+                _hasDealtChargeDamage = true;
+                
+                if (ShowDebugInfo)
+                {
+                    Debug.Log($"ChaserEnemy: Dealt {enemy_Charge_Attack_Damage} charge damage to {target.name}");
+                }
             }
         }
 
@@ -541,6 +700,10 @@ namespace MoreMountains.TopDownEngine
         {
             if (player == null) return;
             
+            // Draw charge radius
+            Gizmos.color = Color.orange;
+            Gizmos.DrawWireSphere(player.position, enemy_Charge_Radius);
+            
             // Draw dash radius
             Gizmos.color = Color.yellow;
             Gizmos.DrawWireSphere(player.position, enemy_Dash_Radius);
@@ -567,7 +730,9 @@ namespace MoreMountains.TopDownEngine
             {
                 case AttackState.Idle: return Color.white;
                 case AttackState.Dashing: return Color.yellow;
-                case AttackState.MeleeAttack: return Color.red;
+                case AttackState.TelegraphingCharge: return Color.orange;
+                case AttackState.Charging: return Color.red;
+                case AttackState.MeleeAttack: return Color.magenta;
                 default: return Color.gray;
             }
         }
@@ -576,12 +741,23 @@ namespace MoreMountains.TopDownEngine
         {
             if (ShowDebugInfo)
             {
+                float timeSinceLastDash = Time.time - _lastDashTime;
+                float timeSinceLastCharge = Time.time - _lastChargeTime;
+                bool canDash = timeSinceLastDash > dashCooldown;
+                bool canCharge = timeSinceLastCharge > chargeCooldown;
+                
                 GUI.Label(new Rect(10, 10, 300, 20), $"Player: {(player != null ? player.name : "Not Found")}");
                 GUI.Label(new Rect(10, 30, 300, 20), $"Movement: {_movement}");
                 GUI.Label(new Rect(10, 50, 300, 20), $"Speed: {(rb != null ? rb.linearVelocity.magnitude.ToString("F2") : "No Rigidbody2D")}");
                 GUI.Label(new Rect(10, 70, 300, 20), $"Attack State: {_currentAttackState}");
                 GUI.Label(new Rect(10, 90, 300, 20), $"Is Dashing: {_isDashing}");
-                GUI.Label(new Rect(10, 110, 300, 20), $"Distance to Player: {(player != null ? Vector2.Distance(transform.position, player.position).ToString("F2") : "N/A")}");
+                GUI.Label(new Rect(10, 110, 300, 20), $"Is Telegraphing: {_isTelegraphing}");
+                GUI.Label(new Rect(10, 130, 300, 20), $"Is Charging: {_isCharging}");
+                GUI.Label(new Rect(10, 150, 300, 20), $"Can Dash: {canDash}");
+                GUI.Label(new Rect(10, 170, 300, 20), $"Can Charge: {canCharge}");
+                GUI.Label(new Rect(10, 190, 300, 20), $"Dash Cooldown: {(canDash ? "Ready" : $"{dashCooldown - timeSinceLastDash:F1}s")}");
+                GUI.Label(new Rect(10, 210, 300, 20), $"Charge Cooldown: {(canCharge ? "Ready" : $"{chargeCooldown - timeSinceLastCharge:F1}s")}");
+                GUI.Label(new Rect(10, 230, 300, 20), $"Distance to Player: {(player != null ? Vector2.Distance(transform.position, player.position).ToString("F2") : "N/A")}");
             }
         }
     }

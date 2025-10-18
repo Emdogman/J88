@@ -9682,11 +9682,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9073b41df1e477e44ab5caa3961ebaa0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: MoreMountains.TopDownEngine::MoreMountains.TopDownEngine.ChaserEnemy
-  enemy_Dash_Radius: 4
+  enemy_Dash_Radius: 3
   enemy_Melee_Radius: 1.5
+  enemy_Charge_Radius: 5
+  enemy_Charge_Telegraph_Time: 1.5
   default_Attack_Damage: 10
-  dashSpeedMultiplier: 3
-  moveSpeed: 5
+  enemy_Charge_Attack_Damage: 25
+  dashSpeedMultiplier: 2.5
+  dashDamage: 15
+  dashCooldown: 3
+  chargeCooldown: 5
+  moveSpeed: 8
   rotationSpeed: 180
   avoidanceRadius: 0.5
   avoidanceStrength: 0.3
