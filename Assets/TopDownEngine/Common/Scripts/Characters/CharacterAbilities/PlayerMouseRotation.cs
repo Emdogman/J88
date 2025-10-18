@@ -16,7 +16,11 @@ namespace MoreMountains.TopDownEngine
         
         [Tooltip("Speed of rotation (0 = instant, higher = smoother)")]
         [Range(0f, 20f)]
-        public float rotationSpeed = 5f;
+        public float rotationSpeed = 15f;
+        
+        [Tooltip("Minimum angle difference to trigger rotation (prevents micro-jitter)")]
+        [Range(0f, 10f)]
+        public float rotationDeadZone = 2f;
         
         [Tooltip("Rotation offset to adjust sprite facing direction (0° = right, 90° = up, -90° = down, 180° = left)")]
         [Range(-180f, 180f)]
@@ -97,13 +101,13 @@ namespace MoreMountains.TopDownEngine
         }
         
         /// <summary>
-        /// Apply rotation in LateUpdate to sync with physics and eliminate jitter
+        /// Apply rotation in FixedUpdate to fully sync with physics and eliminate jitter
         /// </summary>
-        protected virtual void LateUpdate()
+        protected virtual void FixedUpdate()
         {
             if (!AbilityAuthorized || _camera == null) return;
             
-            // Get mouse position and apply rotation AFTER all movement is complete
+            // Get mouse position and apply rotation in sync with physics
             Vector3 mouseWorldPosition = GetMouseWorldPosition();
             float targetAngle = CalculateRotationAngle(mouseWorldPosition);
             ApplyRotation(targetAngle);
@@ -157,6 +161,15 @@ namespace MoreMountains.TopDownEngine
         /// </summary>
         private void ApplyCharacterRotation(float targetAngle)
         {
+            // Check dead zone to prevent micro-jitter
+            float currentAngle = transform.eulerAngles.z;
+            float angleDifference = Mathf.Abs(Mathf.DeltaAngle(currentAngle, targetAngle));
+            
+            if (angleDifference < rotationDeadZone)
+            {
+                return; // Don't rotate if within dead zone
+            }
+            
             Quaternion targetRotation = Quaternion.Euler(0, 0, targetAngle);
             
             if (rotationSpeed <= 0f)
@@ -166,8 +179,8 @@ namespace MoreMountains.TopDownEngine
             }
             else
             {
-                // Smooth rotation
-                transform.rotation = Quaternion.Lerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
+                // Smooth rotation with fixed delta time for consistency
+                transform.rotation = Quaternion.Lerp(transform.rotation, targetRotation, rotationSpeed * Time.fixedDeltaTime);
             }
         }
 
@@ -178,6 +191,15 @@ namespace MoreMountains.TopDownEngine
         {
             if (_spriteRenderer == null) return;
             
+            // Check dead zone to prevent micro-jitter
+            float currentAngle = _spriteRenderer.transform.eulerAngles.z;
+            float angleDifference = Mathf.Abs(Mathf.DeltaAngle(currentAngle, targetAngle));
+            
+            if (angleDifference < rotationDeadZone)
+            {
+                return; // Don't rotate if within dead zone
+            }
+            
             Quaternion targetRotation = Quaternion.Euler(0, 0, targetAngle);
             
             if (rotationSpeed <= 0f)
@@ -187,8 +209,8 @@ namespace MoreMountains.TopDownEngine
             }
             else
             {
-                // Smooth rotation
-                _spriteRenderer.transform.rotation = Quaternion.Lerp(_spriteRenderer.transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
+                // Smooth rotation with fixed delta time for consistency
+                _spriteRenderer.transform.rotation = Quaternion.Lerp(_spriteRenderer.transform.rotation, targetRotation, rotationSpeed * Time.fixedDeltaTime);
             }
         }
 
