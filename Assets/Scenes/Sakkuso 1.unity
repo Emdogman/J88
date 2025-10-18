@@ -22454,8 +22454,8 @@ Tilemap:
   - first: {x: -4, y: 12, z: 0}
     second:
       serializedVersion: 2
-      m_TileIndex: 1
-      m_TileSpriteIndex: 0
+      m_TileIndex: 0
+      m_TileSpriteIndex: 1
       m_TileMatrixIndex: 0
       m_TileColorIndex: 0
       m_TileObjectToInstantiateIndex: 65535
@@ -22494,8 +22494,8 @@ Tilemap:
   - first: {x: 0, y: 12, z: 0}
     second:
       serializedVersion: 2
-      m_TileIndex: 1
-      m_TileSpriteIndex: 0
+      m_TileIndex: 0
+      m_TileSpriteIndex: 1
       m_TileMatrixIndex: 0
       m_TileColorIndex: 0
       m_TileObjectToInstantiateIndex: 65535
@@ -24383,9 +24383,9 @@ Tilemap:
       m_AllTileFlags: 1073741825
   m_AnimatedTiles: {}
   m_TileAssetArray:
-  - m_RefCount: 0
-    m_Data: {fileID: 0}
-  - m_RefCount: 18
+  - m_RefCount: 2
+    m_Data: {fileID: 11400000, guid: 9db3db7fd0ecc6c4caccca60be5083a8, type: 2}
+  - m_RefCount: 16
     m_Data: {fileID: 11400000, guid: d0295fd6452a8604591943f654abcc39, type: 2}
   - m_RefCount: 1
     m_Data: {fileID: 11400000, guid: 8eba7d18003df7147b350d3cd0423559, type: 2}
@@ -24472,10 +24472,10 @@ Tilemap:
   - m_RefCount: 14
     m_Data: {fileID: 11400000, guid: f41f8fca35accac4f8caa486d565fd25, type: 2}
   m_TileSpriteArray:
-  - m_RefCount: 18
+  - m_RefCount: 16
     m_Data: {fileID: 21300000, guid: 8f70f01ef94fcaa49a615b3d3870d6c0, type: 3}
-  - m_RefCount: 0
-    m_Data: {fileID: 0}
+  - m_RefCount: 2
+    m_Data: {fileID: 21300000, guid: 601b9638cf0c08e4bbd677857ba198c0, type: 3}
   - m_RefCount: 1
     m_Data: {fileID: 21300000, guid: 6af0d1db954e36b4483fba3d5962f107, type: 3}
   - m_RefCount: 4
@@ -24755,6 +24755,21 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 870132844276791206, guid: c2c355735b055da4e81d1b5ae1857949,
+        type: 3}
+      propertyPath: CurrentBeer
+      value: 40
+      objectReference: {fileID: 0}
+    - target: {fileID: 870132844276791206, guid: c2c355735b055da4e81d1b5ae1857949,
+        type: 3}
+      propertyPath: StartingBeer
+      value: 40
+      objectReference: {fileID: 0}
+    - target: {fileID: 870132844276791206, guid: c2c355735b055da4e81d1b5ae1857949,
+        type: 3}
+      propertyPath: DepletionRate
+      value: 1.2
+      objectReference: {fileID: 0}
     - target: {fileID: 3374481554295082082, guid: c2c355735b055da4e81d1b5ae1857949,
         type: 3}
       propertyPath: m_LocalPosition.x

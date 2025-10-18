@@ -297,7 +297,7 @@ MonoBehaviour:
   Model: {fileID: 0}
   RequireCharacterComponent: 1
   RequirePlayerType: 1
-  BeerAmount: 17
+  BeerAmount: 25
   ShowDebugInfo: 0
 --- !u!114 &4941177390209464207
 MonoBehaviour:
