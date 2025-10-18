@@ -66,6 +66,8 @@ namespace MoreMountains.TopDownEngine
         private bool _originalInputDetectionActive;
         private AudioSource _audioSource;
         private Vector3 _pukeSpawnPosition;
+        private Rigidbody2D _rigidbody;
+        private RigidbodyType2D _originalBodyType;
 
         protected override void Initialization()
         {
@@ -84,6 +86,13 @@ namespace MoreMountains.TopDownEngine
             if (_characterHandleWeapon == null)
             {
                 Debug.LogWarning("BeerMeterStunHandler: CharacterHandleWeapon not found! Weapon abilities will not be disabled during stun.");
+            }
+            
+            // Get Rigidbody2D reference
+            _rigidbody = GetComponent<Rigidbody2D>();
+            if (_rigidbody == null)
+            {
+                Debug.LogWarning("BeerMeterStunHandler: No Rigidbody2D found! Player may slide when stunned.");
             }
             
             // Setup audio source
@@ -110,12 +119,28 @@ namespace MoreMountains.TopDownEngine
             }
         }
 
+        protected virtual void FixedUpdate()
+        {
+            // Enforce in physics update for stronger control
+            if (_isStunned)
+            {
+                EnforceStationaryDuringStun();
+            }
+        }
+
         public override void ProcessAbility()
         {
             base.ProcessAbility();
             
-            // Also check in ProcessAbility for more reliable detection
-            if (!AbilityAuthorized || _isStunned) return;
+            // Enforce stationary state during stun to prevent sliding
+            if (_isStunned)
+            {
+                EnforceStationaryDuringStun();
+                return;
+            }
+            
+            // Check for stun trigger conditions
+            if (!AbilityAuthorized) return;
             
             // Check if beer meter has reached threshold
             if (_beerManager != null)
@@ -236,9 +261,59 @@ namespace MoreMountains.TopDownEngine
                 _character.LinkedInputManager.InputDetectionActive = false;
             }
             
+            // IMPORTANT: Stop all momentum and make kinematic to prevent sliding
+            if (_rigidbody != null)
+            {
+                // Store original body type
+                _originalBodyType = _rigidbody.bodyType;
+                
+                // Zero out velocity
+                _rigidbody.linearVelocity = Vector2.zero;
+                _rigidbody.angularVelocity = 0f;
+                
+                // Make kinematic so no forces can affect the player during stun
+                _rigidbody.bodyType = RigidbodyType2D.Kinematic;
+            }
+            
             if (showDebugInfo)
             {
-                Debug.Log("BeerMeterStunHandler: Character abilities disabled");
+                Debug.Log("BeerMeterStunHandler: Character abilities disabled, velocity zeroed, and made kinematic");
+            }
+        }
+
+        /// <summary>
+        /// Keeps the player stationary during stun (prevents sliding)
+        /// </summary>
+        private void EnforceStationaryDuringStun()
+        {
+            if (!_isStunned) return;
+            
+            // Force controller movement to zero
+            if (_controller != null)
+            {
+                _controller.SetMovement(Vector3.zero);
+            }
+            
+            // Force rigidbody velocity to zero
+            if (_rigidbody != null)
+            {
+                if (_rigidbody.linearVelocity.magnitude > 0.01f)
+                {
+                    _rigidbody.linearVelocity = Vector2.zero;
+                }
+                
+                if (Mathf.Abs(_rigidbody.angularVelocity) > 0.01f)
+                {
+                    _rigidbody.angularVelocity = 0f;
+                }
+            }
+            
+            // Force character movement to zero if available
+            if (_characterMovement != null)
+            {
+                // Reset movement vector by setting horizontal and vertical to zero
+                _characterMovement.SetHorizontalMovement(0f);
+                _characterMovement.SetVerticalMovement(0f);
             }
         }
 
@@ -259,9 +334,15 @@ namespace MoreMountains.TopDownEngine
                 _character.LinkedInputManager.InputDetectionActive = _originalInputDetectionActive;
             }
             
+            // Restore original rigidbody type to allow physics again
+            if (_rigidbody != null)
+            {
+                _rigidbody.bodyType = _originalBodyType;
+            }
+            
             if (showDebugInfo)
             {
-                Debug.Log("BeerMeterStunHandler: Character abilities re-enabled");
+                Debug.Log("BeerMeterStunHandler: Character abilities re-enabled and physics restored");
             }
         }
 
