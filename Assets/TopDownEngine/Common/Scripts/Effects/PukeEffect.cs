@@ -5,12 +5,16 @@ namespace MoreMountains.TopDownEngine
 {
     /// <summary>
     /// Controls the visual behavior of the puke effect
-    /// Handles fade in/out animation and auto-destruction
+    /// Handles fade in animation and optional fade out/destruction
+    /// By default, puke stays on screen permanently
     /// </summary>
     public class PukeEffect : MonoBehaviour
     {
         [Header("Effect Settings")]
-        [Tooltip("Total duration of the effect")]
+        [Tooltip("Whether the effect should disappear after duration")]
+        public bool disappearAfterDuration = false;
+        
+        [Tooltip("Total duration of the effect (only used if disappearAfterDuration is true)")]
         [Range(1f, 10f)]
         public float effectDuration = 4f;
         
@@ -18,7 +22,7 @@ namespace MoreMountains.TopDownEngine
         [Range(0.1f, 2f)]
         public float fadeInTime = 0.3f;
         
-        [Tooltip("Time to fade out")]
+        [Tooltip("Time to fade out (only used if disappearAfterDuration is true)")]
         [Range(0.1f, 2f)]
         public float fadeOutTime = 1f;
         
@@ -94,16 +98,34 @@ namespace MoreMountains.TopDownEngine
             // Phase 1: Fade in and scale up
             yield return StartCoroutine(FadeInAndScaleUp());
             
-            // Phase 2: Stay visible (subtle animation)
-            yield return StartCoroutine(StayVisible());
-            
-            // Phase 3: Fade out
-            yield return StartCoroutine(FadeOut());
-            
-            _isAnimating = false;
-            
-            // Destroy the effect
-            Destroy(gameObject);
+            // If effect should disappear, continue with full sequence
+            if (disappearAfterDuration)
+            {
+                // Phase 2: Stay visible (subtle animation)
+                yield return StartCoroutine(StayVisible());
+                
+                // Phase 3: Fade out
+                yield return StartCoroutine(FadeOut());
+                
+                _isAnimating = false;
+                
+                // Destroy the effect
+                Destroy(gameObject);
+            }
+            else
+            {
+                // Stay visible indefinitely with subtle animation
+                while (true)
+                {
+                    // Subtle rotation
+                    if (animateRotation)
+                    {
+                        transform.Rotate(0, 0, rotationSpeed * Time.deltaTime);
+                    }
+                    
+                    yield return null;
+                }
+            }
         }
 
         /// <summary>
