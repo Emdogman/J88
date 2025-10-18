@@ -143,6 +143,7 @@ namespace MoreMountains.TopDownEngine
         private float _chargeStartTime;
         private float _chargeDuration = 0.8f;
         private bool _hasDealtChargeDamage = false;
+        private Vector2 _chargeTargetPosition; // Fixed target position for charge attack
         
         // Loot drop tracking
         private bool _hasDroppedLoot;
@@ -440,7 +441,8 @@ namespace MoreMountains.TopDownEngine
             // If charging, movement is handled by charge logic
             if (_isCharging)
             {
-                Vector2 direction = ((Vector2)player.position - (Vector2)transform.position).normalized;
+                // Use fixed target position instead of current player position
+                Vector2 direction = (_chargeTargetPosition - (Vector2)transform.position).normalized;
                 _movement = direction;
                 return;
             }
@@ -571,6 +573,12 @@ namespace MoreMountains.TopDownEngine
             _telegraphStartTime = Time.time;
             _lastChargeTime = Time.time;
             _hasDealtChargeDamage = false;
+            
+            // Lock onto player's current position as the charge target
+            if (player != null)
+            {
+                _chargeTargetPosition = player.position;
+            }
         }
 
         /// <summary>
@@ -599,12 +607,9 @@ namespace MoreMountains.TopDownEngine
                 }
                 else
                 {
-                    // Move towards player during charge
-                    if (player != null)
-                    {
-                        Vector2 direction = ((Vector2)player.position - (Vector2)transform.position).normalized;
-                        _movement = direction;
-                    }
+                    // Move towards fixed target position during charge
+                    Vector2 direction = (_chargeTargetPosition - (Vector2)transform.position).normalized;
+                    _movement = direction;
                 }
             }
         }
