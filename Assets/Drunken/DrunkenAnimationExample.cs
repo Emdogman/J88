@@ -15,6 +15,12 @@ namespace Drunken
         [Tooltip("The basic animation controller")]
         public DrunkenAnimationController animationController;
         
+        [Tooltip("The legs animation controller")]
+        public DrunkenLegsAnimationController legsAnimationController;
+        
+        [Tooltip("The advanced legs animation controller")]
+        public DrunkenLegsCharacterAnimation legsCharacterAnimation;
+        
         [Header("Input Settings")]
         [Tooltip("Key to toggle drunken mode")]
         public KeyCode toggleDrunkenKey = KeyCode.D;
@@ -27,6 +33,9 @@ namespace Drunken
         
         [Tooltip("Key to reset animation")]
         public KeyCode resetAnimationKey = KeyCode.T;
+        
+        [Tooltip("Key to toggle legs animation sync")]
+        public KeyCode toggleLegsSyncKey = KeyCode.L;
         
         [Header("Animation Settings")]
         [Tooltip("Animation speed multiplier")]
@@ -47,6 +56,16 @@ namespace Drunken
             if (animationController == null)
             {
                 animationController = GetComponent<DrunkenAnimationController>();
+            }
+            
+            if (legsAnimationController == null)
+            {
+                legsAnimationController = GetComponent<DrunkenLegsAnimationController>();
+            }
+            
+            if (legsCharacterAnimation == null)
+            {
+                legsCharacterAnimation = GetComponent<DrunkenLegsCharacterAnimation>();
             }
             
             // Log current animation state
@@ -88,6 +107,12 @@ namespace Drunken
             if (Input.GetKeyDown(resetAnimationKey))
             {
                 ResetAnimation();
+            }
+            
+            // Toggle legs animation sync
+            if (Input.GetKeyDown(toggleLegsSyncKey))
+            {
+                ToggleLegsSync();
             }
         }
         
@@ -208,23 +233,64 @@ namespace Drunken
         }
         
         /// <summary>
+        /// Toggles legs animation sync
+        /// </summary>
+        public void ToggleLegsSync()
+        {
+            if (legsAnimationController != null)
+            {
+                bool currentSync = legsAnimationController.syncWithMainAnimation;
+                legsAnimationController.SetSyncWithMainAnimation(!currentSync);
+                Debug.Log($"DrunkenAnimationExample: Toggled legs sync to {!currentSync}");
+            }
+            else if (legsCharacterAnimation != null)
+            {
+                bool currentSync = legsCharacterAnimation.syncWithMainAnimation;
+                legsCharacterAnimation.SetSyncWithMainAnimation(!currentSync);
+                Debug.Log($"DrunkenAnimationExample: Toggled legs sync to {!currentSync}");
+            }
+            else
+            {
+                Debug.LogWarning("DrunkenAnimationExample: No legs animation controller found!");
+            }
+        }
+        
+        /// <summary>
         /// Gets the current animation state as a string
         /// </summary>
         /// <returns>Current animation state description</returns>
         public string GetAnimationStateDescription()
         {
+            string mainState = "";
+            string legsState = "";
+            
             if (drunkenAnimation != null)
             {
-                return $"Drunken: {drunkenAnimation.IsDrunkenMode()}, Moving: {drunkenAnimation.IsMoving()}";
+                mainState = $"Drunken: {drunkenAnimation.IsDrunkenMode()}, Moving: {drunkenAnimation.IsMoving()}";
             }
             else if (animationController != null)
             {
-                return $"State: {animationController.GetCurrentAnimationState()}";
+                mainState = $"State: {animationController.GetCurrentAnimationState()}";
             }
             else
             {
-                return "No animation controller found";
+                mainState = "No main animation controller found";
             }
+            
+            if (legsAnimationController != null)
+            {
+                legsState = $"Legs: {legsAnimationController.GetCurrentAnimationState()}, Moving: {legsAnimationController.IsMoving()}";
+            }
+            else if (legsCharacterAnimation != null)
+            {
+                legsState = $"Legs: Drunken: {legsCharacterAnimation.IsDrunkenMode()}, Moving: {legsCharacterAnimation.IsMoving()}";
+            }
+            else
+            {
+                legsState = "No legs animation controller found";
+            }
+            
+            return $"{mainState} | {legsState}";
         }
         
         /// <summary>
@@ -241,6 +307,7 @@ namespace Drunken
             GUI.Label(new Rect(10, 70, 300, 20), $"{triggerDrunkenRunKey} - Trigger Drunken Run");
             GUI.Label(new Rect(10, 90, 300, 20), $"{triggerIdleKey} - Trigger Idle");
             GUI.Label(new Rect(10, 110, 300, 20), $"{resetAnimationKey} - Reset Animation");
+            GUI.Label(new Rect(10, 130, 300, 20), $"{toggleLegsSyncKey} - Toggle Legs Sync");
         }
     }
 }
