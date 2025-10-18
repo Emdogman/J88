@@ -512,6 +512,7 @@ GameObject:
   - component: {fileID: 242712464007495508}
   - component: {fileID: 1825454371297854268}
   - component: {fileID: 5442114177134842745}
+  - component: {fileID: 4121028836316372046}
   m_Layer: 13
   m_Name: Enemy
   m_TagString: Untagged
@@ -716,7 +717,7 @@ MonoBehaviour:
   dropRate: 0.82
   dropPrefab: {fileID: 1136408400419902, guid: 78d526a077e4aa341b992c1070338a64, type: 3}
   dropAmount: 1
-  dropOffset: 5
+  dropOffset: 3
   ShowDebugInfo: 0
 --- !u!58 &1825454371297854268
 CircleCollider2D:
@@ -769,3 +770,22 @@ MonoBehaviour:
   enemyLayer: 9
   enemyHealth: 50
   colliderRadius: 0.5
+--- !u!114 &4121028836316372046
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7308661256863206878}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ac374bfd0fe1d274fb2077295bdb0903, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Drunken.EnemyAnimationSetup
+  enemyAnimatorController: {fileID: 9100000, guid: 6dcc4ab3f05ffbd4aa25f204b3a1d64e,
+    type: 2}
+  enemyIdleClip: {fileID: 0}
+  enemyRunClip: {fileID: 0}
+  enemyAttackClip: {fileID: 0}
+  autoSetupOnStart: 1
+  applyEnemyControllerOnStart: 1
