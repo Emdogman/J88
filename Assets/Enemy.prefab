@@ -642,7 +642,7 @@ MonoBehaviour:
   minEnemyDistance: 1
   enemyLayerMask:
     serializedVersion: 2
-    m_Bits: 256
+    m_Bits: 8448
   attackWhileMoving: 1
   attackCooldown: 1
   attackLayerMask:
