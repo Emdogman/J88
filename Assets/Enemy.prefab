@@ -653,7 +653,7 @@ MonoBehaviour:
   rb: {fileID: 0}
   playerTag: Player
   playerSearchInterval: 1
-  dropRate: 0.4
+  dropRate: 0.82
   dropPrefab: {fileID: 1136408400419902, guid: 78d526a077e4aa341b992c1070338a64, type: 3}
   dropAmount: 1
   dropOffset: 3
