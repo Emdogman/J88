@@ -113,14 +113,20 @@ namespace MoreMountains.TopDownEngine
         [SerializeField] private float playerSearchInterval = 1f;
 
         [Header("Loot Drop System")]
-        [Tooltip("Rate at which enemies drop loot (0-1, where 1 = 100% chance)")]
-        [SerializeField] private float dropRate = 0.3f;
+        [Tooltip("Rate at which enemies drop coins (0-1, where 1 = 100% chance)")]
+        [SerializeField] private float coinDropRate = 0.3f;
         
         [Tooltip("Prefab to drop when enemy dies (KoalaCoinPicker)")]
-        [SerializeField] private GameObject dropPrefab;
+        [SerializeField] private GameObject coinDropPrefab;
         
-        [Tooltip("Number of items to drop")]
-        [SerializeField] private int dropAmount = 1;
+        [Tooltip("Number of coin items to drop")]
+        [SerializeField] private int coinDropAmount = 1;
+        
+        [Tooltip("Rate at which enemies drop health pickups (0-1, where 1 = 100% chance)")]
+        [SerializeField] private float healthDropRate = 0.3f;
+        
+        [Tooltip("Health pickup prefab to drop when enemy dies")]
+        [SerializeField] private GameObject healthDropPrefab;
         
         [Tooltip("Random offset for drop position")]
         [SerializeField] private float dropOffset = 0.5f;
@@ -992,19 +998,76 @@ namespace MoreMountains.TopDownEngine
 
         /// <summary>
         /// Drops loot based on drop rate and amount
+        /// Enemies can drop either coins OR health pickup, not both
         /// </summary>
         private void DropLoot()
         {
-            if (dropPrefab == null)
+            // Decide what to drop: health pickup or coins
+            // Roll for health pickup first (since it's rarer/more valuable)
+            float healthRoll = Random.Range(0f, 1f);
+            
+            if (healthRoll <= healthDropRate && healthDropPrefab != null)
             {
-                Debug.LogWarning($"ChaserEnemy: No drop prefab assigned to {gameObject.name}");
+                // Drop health pickup
+                DropHealthPickup();
+            }
+            else
+            {
+                // Try to drop coins instead
+                DropCoins();
+            }
+        }
+        
+        /// <summary>
+        /// Drops health pickup at enemy death location
+        /// </summary>
+        private void DropHealthPickup()
+        {
+            if (healthDropPrefab == null)
+            {
+                if (ShowDebugInfo)
+                {
+                    Debug.LogWarning($"ChaserEnemy: No health drop prefab assigned to {gameObject.name}");
+                }
+                return;
+            }
+            
+            // Calculate random drop position
+            Vector3 randomOffset = new Vector3(
+                Random.Range(-dropOffset, dropOffset),
+                Random.Range(-dropOffset, dropOffset),
+                0f
+            );
+            
+            Vector3 dropPosition = transform.position + randomOffset;
+            
+            // Instantiate the health pickup
+            GameObject droppedHealth = Instantiate(healthDropPrefab, dropPosition, Quaternion.identity);
+            
+            if (ShowDebugInfo)
+            {
+                Debug.Log($"ChaserEnemy: Dropped health pickup at {dropPosition}");
+            }
+        }
+        
+        /// <summary>
+        /// Drops coins at enemy death location
+        /// </summary>
+        private void DropCoins()
+        {
+            if (coinDropPrefab == null)
+            {
+                if (ShowDebugInfo)
+                {
+                    Debug.LogWarning($"ChaserEnemy: No coin drop prefab assigned to {gameObject.name}");
+                }
                 return;
             }
 
-            // Check if we should drop loot based on drop rate
-            if (Random.Range(0f, 1f) <= dropRate)
+            // Check if we should drop coins based on drop rate
+            if (Random.Range(0f, 1f) <= coinDropRate)
             {
-                for (int i = 0; i < dropAmount; i++)
+                for (int i = 0; i < coinDropAmount; i++)
                 {
                     // Calculate random drop position (target position)
                     Vector3 randomOffset = new Vector3(
@@ -1016,7 +1079,7 @@ namespace MoreMountains.TopDownEngine
                     Vector3 targetPosition = transform.position + randomOffset;
                     
                     // Instantiate the drop prefab at enemy position (will animate to target)
-                    GameObject droppedItem = Instantiate(dropPrefab, transform.position, Quaternion.identity);
+                    GameObject droppedItem = Instantiate(coinDropPrefab, transform.position, Quaternion.identity);
                     
                     // Add animation component and start animation
                     CoinDropAnimation animation = droppedItem.AddComponent<CoinDropAnimation>();
@@ -1024,7 +1087,7 @@ namespace MoreMountains.TopDownEngine
                     
                     if (ShowDebugInfo)
                     {
-                        Debug.Log($"ChaserEnemy: Dropped {dropPrefab.name} - animating from {transform.position} to {targetPosition}");
+                        Debug.Log($"ChaserEnemy: Dropped {coinDropPrefab.name} - animating from {transform.position} to {targetPosition}");
                     }
                 }
             }
