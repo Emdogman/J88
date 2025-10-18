@@ -100,6 +100,11 @@ namespace MoreMountains.TopDownEngine
 		protected DamageOnTouch _damageOnTouch;
 		protected GameObject _damageArea;
 		protected Coroutine _attackCoroutine;
+		
+		[Header("Animation")]
+		/// the animator to trigger Attack parameter on
+		[Tooltip("the animator to trigger Attack parameter on")]
+		public Animator TargetAnimator;
 
 		/// <summary>
 		/// Initialization
@@ -116,7 +121,13 @@ namespace MoreMountains.TopDownEngine
 			if (Owner != null)
 			{
 				_damageOnTouch.Owner = Owner.gameObject;
-			}            
+			}
+			
+			// Auto-assign the animator if not manually assigned
+			if (TargetAnimator == null)
+			{
+				TargetAnimator = GetTargetAnimator();
+			}
 		}
 
 		/// <summary>
@@ -218,7 +229,96 @@ namespace MoreMountains.TopDownEngine
 		public override void WeaponUse()
 		{
 			base.WeaponUse();
+			
+			// Trigger Attack parameter on animator
+			Animator animator = GetTargetAnimator();
+			if (animator != null)
+			{
+				try
+				{
+					animator.SetTrigger("Attack");
+				}
+				catch (System.Exception e)
+				{
+					Debug.LogWarning($"MeleeWeapon: Could not set Attack trigger: {e.Message}");
+				}
+			}
+			
 			_attackCoroutine = StartCoroutine(MeleeWeaponAttack());
+		}
+		
+		/// <summary>
+		/// Gets the target animator, either assigned or auto-found
+		/// </summary>
+		/// <returns>The target animator</returns>
+		protected virtual Animator GetTargetAnimator()
+		{
+			// If manually assigned, use that
+			if (TargetAnimator != null)
+			{
+				Debug.Log($"MeleeWeapon: Using manually assigned animator: {TargetAnimator.name}");
+				return TargetAnimator;
+			}
+			
+			// Try to find KoalaModel animator
+			if (Owner != null)
+			{
+				Debug.Log($"MeleeWeapon: Looking for animator in owner: {Owner.name}");
+				
+				Transform koalaModel = Owner.transform.Find("KoalaModel");
+				if (koalaModel != null)
+				{
+					Debug.Log($"MeleeWeapon: Found KoalaModel: {koalaModel.name}");
+					Animator animator = koalaModel.GetComponent<Animator>();
+					if (animator != null)
+					{
+						Debug.Log($"MeleeWeapon: Found KoalaModel animator: {animator.name}");
+						return animator;
+					}
+					else
+					{
+						Debug.LogWarning("MeleeWeapon: KoalaModel found but no Animator component");
+					}
+				}
+				else
+				{
+					Debug.LogWarning("MeleeWeapon: No KoalaModel child found");
+				}
+				
+				// Fallback: find any animator in the owner's children
+				Animator[] animators = Owner.GetComponentsInChildren<Animator>();
+				Debug.Log($"MeleeWeapon: Found {animators.Length} animators in owner's children");
+				if (animators.Length > 0)
+				{
+					Debug.Log($"MeleeWeapon: Using first found animator: {animators[0].name}");
+					return animators[0];
+				}
+			}
+			else
+			{
+				Debug.LogWarning("MeleeWeapon: No Owner found");
+			}
+			
+			Debug.LogWarning("MeleeWeapon: No animator found");
+			return null;
+		}
+		
+		/// <summary>
+		/// Manually assigns the target animator (for testing/debugging)
+		/// </summary>
+		[ContextMenu("Find and Assign Animator")]
+		public void FindAndAssignAnimator()
+		{
+			Animator foundAnimator = GetTargetAnimator();
+			if (foundAnimator != null)
+			{
+				TargetAnimator = foundAnimator;
+				Debug.Log($"MeleeWeapon: Manually assigned animator: {TargetAnimator.name}");
+			}
+			else
+			{
+				Debug.LogError("MeleeWeapon: Could not find any animator to assign");
+			}
 		}
 
 		/// <summary>

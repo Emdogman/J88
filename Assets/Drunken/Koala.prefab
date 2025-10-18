@@ -9889,6 +9889,7 @@ GameObject:
   - component: {fileID: 1669749731838842869}
   - component: {fileID: 5267972870384168576}
   - component: {fileID: 6907052163186491945}
+  - component: {fileID: 1541649059397460104}
   m_Layer: 10
   m_Name: Koala
   m_TagString: Player
@@ -10678,6 +10679,22 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Drunken.DrunkenFeetAdvancedDiagnostic
   showDiagnosticGUI: 1
   testController: {fileID: 0}
+--- !u!114 &1541649059397460104
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1498750440386690}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: add459d3596909243af6f4a893e79227, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Drunken.DrunkenAttackInputHandler
+  targetAnimator: {fileID: 0}
+  attackParameterName: Attack
+  attackDuration: 1
+  attackCooldown: 0.5
 --- !u!1 &1561075265052736
 GameObject:
   m_ObjectHideFlags: 0
