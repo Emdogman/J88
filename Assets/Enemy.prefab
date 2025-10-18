@@ -635,6 +635,7 @@ MonoBehaviour:
   flank_Distance: 3
   flank_Position_Offset: 1
   reposition_Cooldown: 3
+  movementDeadZone: 0.1
   moveSpeed: 8
   rotationSpeed: 180
   avoidanceRadius: 0.5
@@ -656,7 +657,7 @@ MonoBehaviour:
   dropRate: 0.82
   dropPrefab: {fileID: 1136408400419902, guid: 78d526a077e4aa341b992c1070338a64, type: 3}
   dropAmount: 1
-  dropOffset: 3
+  dropOffset: 5
   ShowDebugInfo: 0
 --- !u!58 &1825454371297854268
 CircleCollider2D:

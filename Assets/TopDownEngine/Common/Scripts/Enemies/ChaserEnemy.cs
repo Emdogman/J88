@@ -879,19 +879,26 @@ namespace MoreMountains.TopDownEngine
             {
                 for (int i = 0; i < dropAmount; i++)
                 {
-                    // Calculate random drop position
+                    // Calculate random drop position (target position)
                     Vector3 randomOffset = new Vector3(
                         Random.Range(-dropOffset, dropOffset),
                         Random.Range(-dropOffset, dropOffset),
                         0f
                     );
                     
-                    Vector3 dropPosition = transform.position + randomOffset;
+                    Vector3 targetPosition = transform.position + randomOffset;
                     
-                    // Instantiate the drop prefab
-                    GameObject droppedItem = Instantiate(dropPrefab, dropPosition, Quaternion.identity);
+                    // Instantiate the drop prefab at enemy position (will animate to target)
+                    GameObject droppedItem = Instantiate(dropPrefab, transform.position, Quaternion.identity);
                     
-                    Debug.Log($"ChaserEnemy: Dropped {dropPrefab.name} at {dropPosition}");
+                    // Add animation component and start animation
+                    CoinDropAnimation animation = droppedItem.AddComponent<CoinDropAnimation>();
+                    animation.StartAnimation(transform.position, targetPosition);
+                    
+                    if (ShowDebugInfo)
+                    {
+                        Debug.Log($"ChaserEnemy: Dropped {dropPrefab.name} - animating from {transform.position} to {targetPosition}");
+                    }
                 }
             }
         }
