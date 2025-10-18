@@ -103,7 +103,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6c938a0bdd1a669469b3ac13f0f7ede1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: MoreMountains.TopDownEngine::MoreMountains.TopDownEngine.PukeEffect
-  effectDuration: 4
+  disappearAfterDuration: 0
+  effectDuration: 10
   fadeInTime: 0.3
   fadeOutTime: 1
   finalScale: 1.5

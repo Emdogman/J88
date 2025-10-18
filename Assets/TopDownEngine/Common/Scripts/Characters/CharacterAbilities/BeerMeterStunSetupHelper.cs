@@ -141,6 +141,7 @@ namespace MoreMountains.TopDownEngine
             
             // Add PukeEffect script
             PukeEffect pukeScript = pukeEffect.AddComponent<PukeEffect>();
+            pukeScript.disappearAfterDuration = false; // Puke stays permanently
             pukeScript.effectDuration = 3f;
             pukeScript.fadeInTime = 0.3f;
             pukeScript.fadeOutTime = 0.5f;
