@@ -17950,8 +17950,8 @@ MonoBehaviour:
               m_RotationOrder: 4
             AttackTime: 0
             SustainTime: 0.2
-            DecayTime: 0.7
-            ScaleWithImpact: 1
+            DecayTime: 0.5
+            ScaleWithImpact: 0
             HoldForever: 0
           ImpactRadius: 100
           DirectionMode: 0

@@ -686,7 +686,7 @@ MonoBehaviour:
         Active: 1
         UniqueID: -440613796
         Label: Sound
-        OriginalLabel: 
+        OriginalLabel: Sound
         ChannelMode: 0
         Channel: 0
         MMChannelDefinition: {fileID: 0}
@@ -811,7 +811,7 @@ MonoBehaviour:
         Active: 1
         UniqueID: -22140030
         Label: Instantiate Object
-        OriginalLabel: 
+        OriginalLabel: Instantiate Object
         ChannelMode: 0
         Channel: 0
         MMChannelDefinition: {fileID: 0}
@@ -902,7 +902,7 @@ MonoBehaviour:
         Active: 1
         UniqueID: -1883281269
         Label: Lens Distortion
-        OriginalLabel: 
+        OriginalLabel: Lens Distortion
         ChannelMode: 0
         Channel: 0
         MMChannelDefinition: {fileID: 0}
@@ -1075,10 +1075,10 @@ MonoBehaviour:
     - rid: 3
       type: {class: MMF_Flash, ns: MoreMountains.Feedbacks, asm: MoreMountains.Tools}
       data:
-        Active: 1
+        Active: 0
         UniqueID: -1501354257
         Label: Flash
-        OriginalLabel: 
+        OriginalLabel: Flash
         ChannelMode: 0
         Channel: 0
         MMChannelDefinition: {fileID: 0}
@@ -1308,7 +1308,7 @@ MonoBehaviour:
         Active: 1
         UniqueID: -545451407
         Label: Sound
-        OriginalLabel: 
+        OriginalLabel: Sound
         ChannelMode: 0
         Channel: 0
         MMChannelDefinition: {fileID: 0}
@@ -1433,7 +1433,7 @@ MonoBehaviour:
         Active: 1
         UniqueID: 831860998
         Label: Instantiate Object
-        OriginalLabel: 
+        OriginalLabel: Instantiate Object
         ChannelMode: 0
         Channel: 0
         MMChannelDefinition: {fileID: 0}
@@ -1524,7 +1524,7 @@ MonoBehaviour:
         Active: 1
         UniqueID: 1915792774
         Label: Lens Distortion
-        OriginalLabel: 
+        OriginalLabel: Lens Distortion
         ChannelMode: 0
         Channel: 0
         MMChannelDefinition: {fileID: 0}
@@ -1697,10 +1697,10 @@ MonoBehaviour:
     - rid: 3
       type: {class: MMF_Flash, ns: MoreMountains.Feedbacks, asm: MoreMountains.Tools}
       data:
-        Active: 1
+        Active: 0
         UniqueID: 1395079797
         Label: Flash
-        OriginalLabel: 
+        OriginalLabel: Flash
         ChannelMode: 0
         Channel: 0
         MMChannelDefinition: {fileID: 0}
