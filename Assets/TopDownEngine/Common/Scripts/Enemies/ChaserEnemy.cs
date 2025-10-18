@@ -89,6 +89,19 @@ namespace MoreMountains.TopDownEngine
         [Tooltip("How often to search for player if not found (seconds)")]
         [SerializeField] private float playerSearchInterval = 1f;
 
+        [Header("Loot Drop System")]
+        [Tooltip("Rate at which enemies drop loot (0-1, where 1 = 100% chance)")]
+        [SerializeField] private float dropRate = 0.3f;
+        
+        [Tooltip("Prefab to drop when enemy dies (KoalaCoinPicker)")]
+        [SerializeField] private GameObject dropPrefab;
+        
+        [Tooltip("Number of items to drop")]
+        [SerializeField] private int dropAmount = 1;
+        
+        [Tooltip("Random offset for drop position")]
+        [SerializeField] private float dropOffset = 0.5f;
+
         [Header("Debug")]
         [Tooltip("Show debug information")]
         [SerializeField] private bool ShowDebugInfo = false;
@@ -132,6 +145,9 @@ namespace MoreMountains.TopDownEngine
         private float _chargeStartTime;
         private float _chargeDuration = 0.8f;
         private bool _hasDealtChargeDamage = false;
+        
+        // Loot drop tracking
+        private bool _hasDroppedLoot;
 
         private void Awake()
         {
@@ -156,6 +172,21 @@ namespace MoreMountains.TopDownEngine
             
             // Setup weapons if not already configured
             SetupEnemyWeapons();
+            
+            // Subscribe to death event for loot dropping
+            if (_health != null)
+            {
+                _health.OnDeath += HandleDeathAndDropLoot;
+            }
+        }
+
+        private void OnDestroy()
+        {
+            // Unsubscribe from death event to prevent memory leaks
+            if (_health != null)
+            {
+                _health.OnDeath -= HandleDeathAndDropLoot;
+            }
         }
 
         /// <summary>
@@ -510,8 +541,8 @@ namespace MoreMountains.TopDownEngine
                     
                     // Apply exponential falloff for stronger separation
                     distFactor = Mathf.Pow(distFactor, 2f);
-                    avoidance += away / dist * distFactor;
-                }
+                avoidance += away / dist * distFactor;
+            }
             }
 
             return avoidance;
@@ -792,6 +823,57 @@ namespace MoreMountains.TopDownEngine
                 GUI.Label(new Rect(10, 210, 300, 20), $"Charge Cooldown: {(canCharge ? "Ready" : $"{chargeCooldown - timeSinceLastCharge:F1}s")}");
                 GUI.Label(new Rect(10, 230, 300, 20), $"Dash Target: {_dashTargetPosition}");
                 GUI.Label(new Rect(10, 250, 300, 20), $"Distance to Player: {(player != null ? Vector2.Distance(transform.position, player.position).ToString("F2") : "N/A")}");
+                GUI.Label(new Rect(10, 270, 300, 20), $"Health: {(_health != null ? _health.CurrentHealth.ToString("F1") : "No Health")}");
+                GUI.Label(new Rect(10, 290, 300, 20), $"Has Dropped Loot: {_hasDroppedLoot}");
+                GUI.Label(new Rect(10, 310, 300, 20), $"Drop Rate: {dropRate:P0}");
+                GUI.Label(new Rect(10, 330, 300, 20), $"Drop Amount: {dropAmount}");
+            }
+        }
+
+        /// <summary>
+        /// Handles death and drops loot when enemy dies
+        /// Called by Health.OnDeath event
+        /// </summary>
+        private void HandleDeathAndDropLoot()
+        {
+            if (!_hasDroppedLoot)
+            {
+                DropLoot();
+                _hasDroppedLoot = true;
+            }
+        }
+
+
+        /// <summary>
+        /// Drops loot based on drop rate and amount
+        /// </summary>
+        private void DropLoot()
+        {
+            if (dropPrefab == null)
+            {
+                Debug.LogWarning($"ChaserEnemy: No drop prefab assigned to {gameObject.name}");
+                return;
+            }
+
+            // Check if we should drop loot based on drop rate
+            if (Random.Range(0f, 1f) <= dropRate)
+            {
+                for (int i = 0; i < dropAmount; i++)
+                {
+                    // Calculate random drop position
+                    Vector3 randomOffset = new Vector3(
+                        Random.Range(-dropOffset, dropOffset),
+                        Random.Range(-dropOffset, dropOffset),
+                        0f
+                    );
+                    
+                    Vector3 dropPosition = transform.position + randomOffset;
+                    
+                    // Instantiate the drop prefab
+                    GameObject droppedItem = Instantiate(dropPrefab, dropPosition, Quaternion.identity);
+                    
+                    Debug.Log($"ChaserEnemy: Dropped {dropPrefab.name} at {dropPosition}");
+                }
             }
         }
     }
