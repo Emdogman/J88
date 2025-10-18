@@ -1,0 +1,17 @@
+fileFormatVersion: 2
+guid: 9bcb8aba85914da4898dfd3acf5256f8
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - drunkenAnimatorController: {fileID: 9100000, guid: 9267390d3e7154b40bc892e523f78502,
+      type: 2}
+  - normalAnimatorController: {instanceID: 0}
+  - idleClip: {instanceID: 0}
+  - drunkenRunClip: {instanceID: 0}
+  - drunkenFeetClip: {instanceID: 0}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
