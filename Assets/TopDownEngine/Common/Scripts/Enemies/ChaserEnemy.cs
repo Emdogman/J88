@@ -40,6 +40,9 @@ namespace MoreMountains.TopDownEngine
 
         [Tooltip("Cooldown before recalculating orbit position")]
         [SerializeField] private float reposition_Cooldown = 2f;
+        
+        [Tooltip("Minimum movement threshold to prevent micro-movements")]
+        [SerializeField] private float movementDeadZone = 0.1f;
 
         [Header("Movement Settings")]
         [Tooltip("How fast the enemy moves")]
@@ -135,6 +138,8 @@ namespace MoreMountains.TopDownEngine
         private bool _hasReachedOrbitPosition;
         private float _orbitAngle;
         private Vector2 _lastPlayerPosition;
+        private Vector2 _smoothedMovement; // Smoothed movement vector to prevent twitching
+        private float _movementSmoothing = 0.1f; // How much to smooth movement changes
         
         // Charge attack management
         private bool _isTelegraphing = false;
@@ -144,6 +149,8 @@ namespace MoreMountains.TopDownEngine
         private float _chargeDuration = 0.8f;
         private bool _hasDealtChargeDamage = false;
         private Vector2 _chargeTargetPosition; // Fixed target position for charge attack
+        private float _chargeEndTime; // Time when charge ended
+        private float _chargeRecoveryTime = 0.5f; // Time to wait before recalculating orbit after charge
         
         // Loot drop tracking
         private bool _hasDroppedLoot;
@@ -454,6 +461,13 @@ namespace MoreMountains.TopDownEngine
                 return;
             }
             
+            // Brief pause after charge to prevent twitching
+            if (Time.time - _chargeEndTime < _chargeRecoveryTime)
+            {
+                _movement = Vector2.zero;
+                return;
+            }
+            
             // If attacking in place, stop moving
             if (_currentAttackState == AttackState.MeleeAttack && !attackWhileMoving)
             {
@@ -473,9 +487,9 @@ namespace MoreMountains.TopDownEngine
             // Combine movement with avoidance
             _movement = (directionToOrbit + avoidance * avoidanceStrength).normalized;
             
-            // Check if reached orbit position
+            // Check if reached orbit position with larger tolerance to prevent constant repositioning
             float distanceToOrbit = Vector2.Distance(transform.position, _targetOrbitPosition);
-            _hasReachedOrbitPosition = distanceToOrbit < 0.5f;
+            _hasReachedOrbitPosition = distanceToOrbit < 1.0f; // Increased tolerance
         }
 
         /// <summary>
@@ -485,15 +499,24 @@ namespace MoreMountains.TopDownEngine
         {
             if (player == null) return;
             
+            // Don't recalculate orbit immediately after charge ends
+            if (Time.time - _chargeEndTime < _chargeRecoveryTime)
+            {
+                return;
+            }
+            
             Vector2 currentPlayerPosition = player.position;
             float playerMovedDistance = Vector2.Distance(currentPlayerPosition, _lastPlayerPosition);
             
             // Only recalculate if:
             // 1. Cooldown has passed AND (we don't have a target position OR player moved significantly)
             // 2. OR if we don't have a target position yet
+            // 3. OR if we're too far from our current orbit position
+            float distanceToCurrentOrbit = Vector2.Distance(transform.position, _targetOrbitPosition);
             bool shouldRecalculate = (Time.time - _lastRepositionTime >= reposition_Cooldown && 
-                                    (_targetOrbitPosition == Vector2.zero || playerMovedDistance > 1f)) ||
-                                    _targetOrbitPosition == Vector2.zero;
+                                    (_targetOrbitPosition == Vector2.zero || playerMovedDistance > 2f)) ||
+                                    _targetOrbitPosition == Vector2.zero ||
+                                    distanceToCurrentOrbit > flank_Distance * 2f; // If we're way off target
             
             if (!shouldRecalculate)
             {
@@ -503,9 +526,6 @@ namespace MoreMountains.TopDownEngine
             // Calculate base orbit position
             // Distribute enemies around the player by using their instance ID for variation
             _orbitAngle = (GetInstanceID() % 360) * Mathf.Deg2Rad;
-            
-            // Remove time-based variation to prevent twitching
-            // _orbitAngle += timeVariation; // Commented out to prevent twitching
             
             // Calculate position on orbit
             Vector2 orbitDirection = new Vector2(Mathf.Cos(_orbitAngle), Mathf.Sin(_orbitAngle));
@@ -603,7 +623,11 @@ namespace MoreMountains.TopDownEngine
                 if (Time.time - _chargeStartTime >= _chargeDuration)
                 {
                     _isCharging = false;
+                    _chargeEndTime = Time.time;
                     _currentAttackState = AttackState.Orbiting;
+                    
+                    // Stop movement briefly to prevent twitching
+                    _movement = Vector2.zero;
                 }
                 else
                 {
@@ -668,7 +692,7 @@ namespace MoreMountains.TopDownEngine
         }
 
         /// <summary>
-        /// Moves the enemy using Rigidbody2D
+        /// Moves the enemy using Rigidbody2D with smoothed movement
         /// </summary>
         private void MoveEnemy()
         {
@@ -680,7 +704,23 @@ namespace MoreMountains.TopDownEngine
                 currentSpeed *= 2.5f; // Charge speed multiplier
             }
             
-            rb.linearVelocity = _movement * currentSpeed;
+            // Apply dead zone to prevent micro-movements
+            if (_movement.magnitude < movementDeadZone)
+            {
+                _movement = Vector2.zero;
+            }
+            
+            // Smooth movement changes to prevent twitching
+            _smoothedMovement = Vector2.Lerp(_smoothedMovement, _movement, _movementSmoothing);
+            
+            // Apply dead zone to smoothed movement as well
+            if (_smoothedMovement.magnitude < movementDeadZone)
+            {
+                _smoothedMovement = Vector2.zero;
+            }
+            
+            // Apply smoothed movement
+            rb.linearVelocity = _smoothedMovement * currentSpeed;
         }
 
         /// <summary>
