@@ -77,27 +77,26 @@ namespace MoreMountains.TopDownEngine
             }
         }
 
-        protected override void HandleInput()
+        public override void ProcessAbility()
         {
-            if (!AbilityAuthorized) return;
+            base.ProcessAbility();
+            
+            if (!AbilityAuthorized || _camera == null) return;
             
             // Get mouse position in world space
             Vector3 mouseWorldPosition = GetMouseWorldPosition();
             
-            // Check if mouse is moving
+            // Always calculate and apply rotation (not just when mouse is moving)
+            float targetAngle = CalculateRotationAngle(mouseWorldPosition);
+            ApplyRotation(targetAngle);
+            
+            // Update mouse movement tracking for debug purposes
             _isMouseMoving = Vector3.Distance(mouseWorldPosition, _lastMousePosition) > 0.1f;
             _lastMousePosition = mouseWorldPosition;
             
-            if (_isMouseMoving)
+            if (showDebugInfo && _isMouseMoving)
             {
-                // Calculate and apply rotation
-                float targetAngle = CalculateRotationAngle(mouseWorldPosition);
-                ApplyRotation(targetAngle);
-                
-                if (showDebugInfo)
-                {
-                    Debug.Log($"PlayerMouseRotation: Mouse at {mouseWorldPosition}, Target Angle: {targetAngle:F1}°");
-                }
+                Debug.Log($"PlayerMouseRotation: Mouse at {mouseWorldPosition}, Target Angle: {targetAngle:F1}°");
             }
         }
 
@@ -153,7 +152,7 @@ namespace MoreMountains.TopDownEngine
             
             if (rotationSpeed <= 0f)
             {
-                // Instant rotation
+                // Instant rotation - always update to ensure continuous tracking
                 transform.rotation = targetRotation;
             }
             else
@@ -174,7 +173,7 @@ namespace MoreMountains.TopDownEngine
             
             if (rotationSpeed <= 0f)
             {
-                // Instant rotation
+                // Instant rotation - always update to ensure continuous tracking
                 _spriteRenderer.transform.rotation = targetRotation;
             }
             else

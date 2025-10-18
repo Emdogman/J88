@@ -10079,8 +10079,8 @@ MonoBehaviour:
   BlockingMovementStates: 
   BlockingConditionStates: 
   BlockingWeaponStates: 
-  FacingMode: 3
-  FacingBase: 0
+  FacingMode: 2
+  FacingBase: 2
   ModelShouldFlip: 0
   ModelFlipValueLeft: {x: -1, y: 1, z: 1}
   ModelFlipValueRight: {x: 1, y: 1, z: 1}
@@ -10703,7 +10703,7 @@ MonoBehaviour:
   BlockingWeaponStates: 
   rotateEntireCharacter: 1
   rotationSpeed: 20
-  rotationOffset: 0
+  rotationOffset: -90
   useFlipping: 0
   showDebugLine: 0
   showDebugInfo: 0
