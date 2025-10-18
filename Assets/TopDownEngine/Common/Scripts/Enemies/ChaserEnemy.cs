@@ -725,13 +725,32 @@ namespace MoreMountains.TopDownEngine
 
         /// <summary>
         /// Rotates the enemy to face movement direction
-        /// Disabled for surrounding behavior - enemies maintain their original orientation
         /// </summary>
         private void RotateTowardsMovement()
         {
-            // Disabled rotation for surrounding behavior
-            // Enemies maintain their original sprite orientation while moving
-            return;
+            // Use smoothed movement for more stable rotation
+            Vector2 movementDirection = _smoothedMovement;
+            
+            // Only rotate if moving significantly (avoid rotation jitter when idle)
+            if (movementDirection.magnitude < movementDeadZone)
+            {
+                return;
+            }
+            
+            // Calculate target rotation angle from movement direction
+            float targetAngle = Mathf.Atan2(movementDirection.y, movementDirection.x) * Mathf.Rad2Deg;
+            
+            // Apply 90-degree offset if needed (depends on sprite orientation)
+            // Unity sprites typically face right by default
+            targetAngle -= 90f;
+            
+            // Smoothly rotate towards target angle
+            Quaternion targetRotation = Quaternion.Euler(0, 0, targetAngle);
+            transform.rotation = Quaternion.RotateTowards(
+                transform.rotation,
+                targetRotation,
+                rotationSpeed * Time.deltaTime
+            );
         }
 
         /// <summary>
