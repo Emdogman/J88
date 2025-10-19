@@ -115,6 +115,16 @@ namespace MoreMountains.TopDownEngine
         [Tooltip("Feedbacks to play when the enemy starts a melee attack")]
         public MMFeedbacks MeleeAttackStartFeedbacks;
         
+        [Header("Charge Telegraph Visual")]
+        [Tooltip("Sprite to show ON the enemy when preparing charge attack")]
+        [SerializeField] private Sprite chargeIndicatorSprite;
+        
+        [Tooltip("Offset from enemy center (0,0,0 = centered on enemy)")]
+        [SerializeField] private Vector3 indicatorOffset = Vector3.zero;
+        
+        [Tooltip("Size of the indicator sprite")]
+        [SerializeField] private Vector2 indicatorSize = new Vector2(1f, 1f);
+        
         [Header("Debug")]
         [Tooltip("Show debug information")]
         [SerializeField] private bool ShowDebugInfo = false;
@@ -163,6 +173,10 @@ namespace MoreMountains.TopDownEngine
         
         // Attack animation control
         private bool _isAttacking = false;
+        
+        // Charge indicator
+        private GameObject _chargeIndicator;
+        private SpriteRenderer _chargeIndicatorRenderer;
         
         // State stability
         private float _stateCommitTime = 0.3f; // Minimum time to stay in a state
@@ -520,6 +534,9 @@ namespace MoreMountains.TopDownEngine
             _lastChargeTime = Time.time;
             _hasDealtChargeDamage = false;
             _chargeTargetPosition = player.position;
+            
+            // Show charge indicator sprite
+            ShowChargeIndicator();
         }
 
         /// <summary>
@@ -535,6 +552,9 @@ namespace MoreMountains.TopDownEngine
                     _isCharging = true;
                     _chargeStartTime = Time.time;
                     _currentAttackState = AttackState.Charging;
+                    
+                    // Hide charge indicator when charge begins
+                    HideChargeIndicator();
                 }
             }
             else if (_isCharging)
@@ -691,6 +711,9 @@ namespace MoreMountains.TopDownEngine
                 _currentAttackState = AttackState.Idle;
                 _movement = Vector2.zero;
                 rb.linearVelocity = Vector2.zero;
+                
+                // Hide charge indicator when interrupted
+                HideChargeIndicator();
             }
         }
 
@@ -896,6 +919,51 @@ namespace MoreMountains.TopDownEngine
         public void ForceFindPlayer()
         {
             FindPlayer();
+        }
+
+        /// <summary>
+        /// Shows the charge indicator sprite ON the enemy
+        /// </summary>
+        private void ShowChargeIndicator()
+        {
+            if (chargeIndicatorSprite == null) return;
+            
+            // Create indicator if it doesn't exist
+            if (_chargeIndicator == null)
+            {
+                _chargeIndicator = new GameObject("ChargeIndicator");
+                _chargeIndicator.transform.SetParent(transform);
+                _chargeIndicatorRenderer = _chargeIndicator.AddComponent<SpriteRenderer>();
+                _chargeIndicatorRenderer.sprite = chargeIndicatorSprite;
+                _chargeIndicatorRenderer.sortingLayerName = "Default"; // Use Default sorting layer
+                _chargeIndicatorRenderer.sortingOrder = 1000; // Much higher to render on top
+            }
+            
+            // Position directly ON enemy (centered, with optional offset)
+            _chargeIndicator.transform.localPosition = indicatorOffset;
+            _chargeIndicator.transform.localScale = new Vector3(indicatorSize.x, indicatorSize.y, 1f);
+            _chargeIndicator.SetActive(true);
+            
+            if (ShowDebugInfo)
+            {
+                Debug.Log($"{gameObject.name}: Charge indicator shown ON enemy");
+            }
+        }
+
+        /// <summary>
+        /// Hides the charge indicator sprite
+        /// </summary>
+        private void HideChargeIndicator()
+        {
+            if (_chargeIndicator != null)
+            {
+                _chargeIndicator.SetActive(false);
+                
+                if (ShowDebugInfo)
+                {
+                    Debug.Log($"{gameObject.name}: Charge indicator hidden");
+                }
+            }
         }
     }
 }

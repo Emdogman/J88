@@ -77,8 +77,8 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
-  m_SortingLayerID: 1603220759
-  m_SortingLayer: 3
+  m_SortingLayerID: 47421343
+  m_SortingLayer: 4
   m_SortingOrder: 0
   m_Sprite: {fileID: -792674035, guid: 1f8f7aafde4706040bc6d79451141771, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -1247,6 +1247,7 @@ MonoBehaviour:
     m_Bits: 1024
   player: {fileID: 0}
   rb: {fileID: 0}
+  walkableTilemap: {fileID: 0}
   playerTag: Player
   playerSearchInterval: 1
   coinDropRate: 1
@@ -1256,6 +1257,10 @@ MonoBehaviour:
   dropOffset: 3
   attackInterruptDuration: 0.25
   MeleeAttackStartFeedbacks: {fileID: 330612940595272861}
+  chargeIndicatorSprite: {fileID: 1675267160, guid: 77af287c14780094ca968f82e458a0b0,
+    type: 3}
+  indicatorOffset: {x: 0, y: -0.5, z: 0}
+  indicatorSize: {x: 0.5, y: 0.5}
   ShowDebugInfo: 1
 --- !u!58 &1825454371297854268
 CircleCollider2D:
