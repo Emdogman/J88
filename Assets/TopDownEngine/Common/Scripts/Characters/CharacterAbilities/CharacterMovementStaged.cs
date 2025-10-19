@@ -142,13 +142,13 @@ namespace MoreMountains.TopDownEngine
         /// How much the input wobbles in Stage 2 (tipsy) - less than Stage 3
         /// </summary>
         [Tooltip("How much the input wobbles in Stage 2 (tipsy) - less than Stage 3")]
-        public float Stage2WobbleAmount = 0.08f;
+        public float Stage2WobbleAmount = 0.7f;
 
         /// <summary>
         /// How much the input wobbles in Stage 3 (very drunk) - most wobble
         /// </summary>
         [Tooltip("How much the input wobbles in Stage 3 (very drunk) - most wobble")]
-        public float Stage3WobbleAmount = 0.15f;
+        public float Stage3WobbleAmount = 1.2f;
 
         /// <summary>
         /// Primary wobble frequency (Hz)
@@ -485,12 +485,13 @@ namespace MoreMountains.TopDownEngine
             // Get wobble amount based on current stage
             float wobbleAmount = CurrentStage == MovementStage.Stage2_Drift ? Stage2WobbleAmount : Stage3WobbleAmount;
             
-            // Pure horizontal sinusoidal wobble only (no vertical movement)
+            // Apply wobble in BOTH horizontal and vertical directions for full drunk effect
             float wobbleX = Mathf.Sin(Time.time * DrunkWobbleSpeed) * wobbleAmount;
             wobbleX += Mathf.Sin(Time.time * DrunkWobbleSpeed2 * 0.7f) * wobbleAmount * 0.5f;
             
-            // No vertical wobble - only horizontal sway
-            float wobbleY = 0f;
+            // Add vertical wobble with different phase for natural drunk movement
+            float wobbleY = Mathf.Sin(Time.time * DrunkWobbleSpeed * 1.3f) * wobbleAmount;
+            wobbleY += Mathf.Sin(Time.time * DrunkWobbleSpeed2 * 0.9f) * wobbleAmount * 0.5f;
             
             Vector2 wobbleOffset = new Vector2(wobbleX, wobbleY);
             
