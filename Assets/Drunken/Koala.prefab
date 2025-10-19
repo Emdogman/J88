@@ -10150,6 +10150,10 @@ MonoBehaviour:
   Stage3WobbleAmount: 0.15
   DrunkWobbleSpeed: 7
   DrunkWobbleSpeed2: 5
+  EnableRandomDrunkMovement: 1
+  Stage2RandomForce: 0.3
+  Stage3RandomForce: 0.7
+  RandomDirectionChangeInterval: 0.3
 --- !u!114 &114079283237680582
 MonoBehaviour:
   m_ObjectHideFlags: 0

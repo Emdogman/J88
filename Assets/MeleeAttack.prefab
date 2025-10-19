@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 9144973195653341234}
   - component: {fileID: 469826133289737881}
   - component: {fileID: 3600366834405345267}
-  - component: {fileID: 6106648450522557152}
+  - component: {fileID: 3667766905262648080}
   m_Layer: 0
   m_Name: MeleeAttack
   m_TagString: Untagged
@@ -162,7 +162,7 @@ MonoBehaviour:
   CameraTargetOffset: 0.3
   CameraTargetMaxDistance: 10
   CameraTargetSpeed: 5
---- !u!114 &6106648450522557152
+--- !u!114 &3667766905262648080
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -174,40 +174,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aba71f279239dda4a8d56c2bfdf2a44f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: MoreMountains.TopDownEngine::MoreMountains.TopDownEngine.BeerDamageMultiplier
-  BaseDamageMultiplier: 1
-  MaxDamageMultiplier: 2.5
-  DamageScalingCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 1
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0
-    - serializedVersion: 3
-      time: 1
-      value: 2.5
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
-  ShowDebugInfo: 1
-  IsActive: 1
-  Stage1Multiplier: 1
-  Stage2Multiplier: 1.5
-  Stage3Multiplier: 2
-  Stage4Multiplier: 2.5
-  ShowDamageMultiplierInUI: 1
-  DamageMultiplierText: {fileID: 0}
+  stage1Multiplier: 1
+  stage2Multiplier: 1.5
+  stage3Multiplier: 2
+  isActive: 1
+  showDebugInfo: 1
 --- !u!1 &6790847181249259520
 GameObject:
   m_ObjectHideFlags: 0
