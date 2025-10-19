@@ -252,6 +252,61 @@ MonoBehaviour:
   loopAnimation: 0
   reverseOnLoop: 0
   showDebugInfo: 0
+--- !u!1 &830565740
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 830565742}
+  - component: {fileID: 830565741}
+  m_Layer: 0
+  m_Name: DeathSong
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &830565741
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 830565740}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 44f5f9a5f168c9c449de180efde5826e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MoreMountains.TopDownEngine::MoreMountains.TopDownEngine.DeathMusicController
+  deathMusic: {fileID: 8300000, guid: 98096f1ca0c3fd8478d4f6f080fec10b, type: 3}
+  musicVolume: 0.7
+  loopMusic: 0
+  fadeIn: 0
+  fadeInDuration: 1
+  fadeOutPreviousMusic: 0
+  fadeOutDuration: 0.5
+  playerTag: Player
+  audioSource: {fileID: 0}
+  createPersistentAudioSource: 1
+  showDebugInfo: 0
+--- !u!4 &830565742
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 830565740}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 4860.7383, y: 1037.786, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &962007552
 GameObject:
   m_ObjectHideFlags: 0
@@ -2305,6 +2360,37 @@ Tilemap:
     e31: 0
     e32: 0
     e33: 1
+--- !u!1 &1141525491
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1141525492}
+  m_Layer: 0
+  m_Name: bERR
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1141525492
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1141525491}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 4860.7383, y: 1037.786, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1202623255
 GameObject:
   m_ObjectHideFlags: 0
@@ -20054,7 +20140,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1803433230
 RectTransform:
   m_ObjectHideFlags: 0
@@ -20064,7 +20150,7 @@ RectTransform:
   m_GameObject: {fileID: 1803433229}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1.799676, y: 1.799676, z: 1.799676}
+  m_LocalScale: {x: 1.7996763, y: 1.7996763, z: 1.7996763}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 515992348}
@@ -25088,6 +25174,11 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 3444800390976615333, guid: c2c355735b055da4e81d1b5ae1857949,
+        type: 3}
+      propertyPath: orthographic size
+      value: 4.82
+      objectReference: {fileID: 0}
     - target: {fileID: 5024408437924304494, guid: c2c355735b055da4e81d1b5ae1857949,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -25973,3 +26064,5 @@ SceneRoots:
   - {fileID: 1965897147}
   - {fileID: 1977909793}
   - {fileID: 177263016}
+  - {fileID: 830565742}
+  - {fileID: 1141525492}
