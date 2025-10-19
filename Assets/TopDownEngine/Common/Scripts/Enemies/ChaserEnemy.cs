@@ -50,7 +50,7 @@ namespace MoreMountains.TopDownEngine
         
         [Tooltip("Amount of random variation (0-1)")]
         [Range(0f, 0.5f)]
-        [SerializeField] private float randomVariationAmount = 0.15f;
+        [SerializeField] private float randomVariationAmount = 0.08f;
         
         [Tooltip("How fast the enemy rotates to face the player (degrees per second)")]
         [SerializeField] private float rotationSpeed = 180f;
@@ -209,6 +209,14 @@ namespace MoreMountains.TopDownEngine
                 useTriggers = true 
             };
             _enemyFilter.SetLayerMask(enemyLayerMask);
+            
+            // Configure Rigidbody2D for smooth movement
+            if (rb != null)
+            {
+                rb.interpolation = RigidbodyInterpolation2D.Interpolate;
+                rb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
+                rb.linearDamping = 2f; // Add damping for smoother deceleration
+            }
             
             // Initialize TopDownEngine components
             InitializeTopDownEngineComponents();
