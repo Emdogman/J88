@@ -1157,7 +1157,9 @@ MonoBehaviour:
   dropOffset: 3
   attackInterruptDuration: 0.5
   MeleeAttackStartFeedbacks: {fileID: 330612940595272861}
-  ShowDebugInfo: 0
+  attackChild: {fileID: 0}
+  enemyAnimator: {fileID: 0}
+  ShowDebugInfo: 1
 --- !u!58 &1825454371297854268
 CircleCollider2D:
   m_ObjectHideFlags: 0
