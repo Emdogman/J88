@@ -66,6 +66,13 @@ namespace MoreMountains.TopDownEngine
                 transform.position = _targetPosition;
                 transform.localScale = _originalScale;
                 
+                // Trigger sinus movement if component exists
+                SinusMovement sinusMovement = GetComponent<SinusMovement>();
+                if (sinusMovement != null)
+                {
+                    sinusMovement.SetLandedPosition(_targetPosition);
+                }
+                
                 // Destroy this component after animation completes
                 Destroy(this);
             }

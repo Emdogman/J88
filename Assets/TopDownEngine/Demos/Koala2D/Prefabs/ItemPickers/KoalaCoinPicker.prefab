@@ -128,6 +128,7 @@ GameObject:
   - component: {fileID: 2578904003073367510}
   - component: {fileID: 114123456789012345}
   - component: {fileID: 4941177390209464207}
+  - component: {fileID: 5184978418453266063}
   m_Layer: 0
   m_Name: KoalaCoinPicker
   m_TagString: Untagged
@@ -361,6 +362,29 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &5184978418453266063
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1136408400419902}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2e78c943a6d138d488bad96c022f0116, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MoreMountains.TopDownEngine::MoreMountains.TopDownEngine.SinusMovement
+  enableMovement: 1
+  startDelay: 0
+  horizontalAmplitude: 0.3
+  verticalAmplitude: 0.2
+  horizontalSpeed: 2
+  verticalSpeed: 3
+  useFigure8Pattern: 0
+  enableBobbing: 1
+  bobbingAmplitude: 0.1
+  bobbingSpeed: 1.5
+  showDebugInfo: 0
 --- !u!1 &1437768596201436
 GameObject:
   m_ObjectHideFlags: 0
