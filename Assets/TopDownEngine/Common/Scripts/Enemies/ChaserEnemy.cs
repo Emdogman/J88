@@ -762,6 +762,15 @@ namespace MoreMountains.TopDownEngine
                 sinusMovement.enableBobbing = true;
                 sinusMovement.bobbingAmplitude = 0.08f;
                 
+                // Add timed destruction with blinking
+                TimedDestructionWithBlink timedDestruction = droppedItem.AddComponent<TimedDestructionWithBlink>();
+                timedDestruction.lifetime = 6f; // Destroy after 6 seconds
+                timedDestruction.blinkStartTime = 3f; // Blink in last 3 seconds
+                timedDestruction.blinkSpeed = 8f; // Fast blinking
+                timedDestruction.minAlpha = 0f; // Fully transparent
+                timedDestruction.maxAlpha = 1f; // Fully opaque
+                timedDestruction.startDelay = 0.5f; // Wait for drop animation
+                
                 // Add drop animation
                 CoinDropAnimation animation = droppedItem.AddComponent<CoinDropAnimation>();
                 animation.StartAnimation(transform.position, targetPosition);
