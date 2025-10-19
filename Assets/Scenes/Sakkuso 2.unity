@@ -24755,21 +24755,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 870132844276791206, guid: c2c355735b055da4e81d1b5ae1857949,
-        type: 3}
-      propertyPath: CurrentBeer
-      value: 40
-      objectReference: {fileID: 0}
-    - target: {fileID: 870132844276791206, guid: c2c355735b055da4e81d1b5ae1857949,
-        type: 3}
-      propertyPath: StartingBeer
-      value: 40
-      objectReference: {fileID: 0}
-    - target: {fileID: 870132844276791206, guid: c2c355735b055da4e81d1b5ae1857949,
-        type: 3}
-      propertyPath: DepletionRate
-      value: 1.2
-      objectReference: {fileID: 0}
     - target: {fileID: 3374481554295082082, guid: c2c355735b055da4e81d1b5ae1857949,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -24819,6 +24804,16 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5024408437924304494, guid: c2c355735b055da4e81d1b5ae1857949,
+        type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -30.8
+      objectReference: {fileID: 0}
+    - target: {fileID: 5024408437924304494, guid: c2c355735b055da4e81d1b5ae1857949,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 5.7
       objectReference: {fileID: 0}
     - target: {fileID: 7018955473113151669, guid: c2c355735b055da4e81d1b5ae1857949,
         type: 3}
@@ -25564,6 +25559,56 @@ PrefabInstance:
         type: 3}
       propertyPath: m_AnchoredPosition.y
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8502887438519894214, guid: c2c355735b055da4e81d1b5ae1857949,
+        type: 3}
+      propertyPath: maxEnemies
+      value: 2147483647
+      objectReference: {fileID: 0}
+    - target: {fileID: 8502887438519894214, guid: c2c355735b055da4e81d1b5ae1857949,
+        type: 3}
+      propertyPath: spawnAreaMaxX
+      value: 28
+      objectReference: {fileID: 0}
+    - target: {fileID: 8502887438519894214, guid: c2c355735b055da4e81d1b5ae1857949,
+        type: 3}
+      propertyPath: spawnAreaMaxY
+      value: -2
+      objectReference: {fileID: 0}
+    - target: {fileID: 8502887438519894214, guid: c2c355735b055da4e81d1b5ae1857949,
+        type: 3}
+      propertyPath: spawnAreaMinX
+      value: -28
+      objectReference: {fileID: 0}
+    - target: {fileID: 8502887438519894214, guid: c2c355735b055da4e81d1b5ae1857949,
+        type: 3}
+      propertyPath: spawnAreaMinY
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 8502887438519894214, guid: c2c355735b055da4e81d1b5ae1857949,
+        type: 3}
+      propertyPath: useManualBounds
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8502887438519894214, guid: c2c355735b055da4e81d1b5ae1857949,
+        type: 3}
+      propertyPath: useManualSpawnArea
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8502887438519894214, guid: c2c355735b055da4e81d1b5ae1857949,
+        type: 3}
+      propertyPath: levelBoundsCollider
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 8502887438519894214, guid: c2c355735b055da4e81d1b5ae1857949,
+        type: 3}
+      propertyPath: autoDetectLevelBounds
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8502887438519894214, guid: c2c355735b055da4e81d1b5ae1857949,
+        type: 3}
+      propertyPath: manualLevelBounds.m_Extent.y
+      value: -8
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects:
