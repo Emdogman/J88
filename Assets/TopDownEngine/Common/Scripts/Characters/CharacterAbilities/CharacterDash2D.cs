@@ -89,6 +89,8 @@ namespace MoreMountains.TopDownEngine
 		// Collision layer switching for dash
 		protected int _originalLayer;
 		protected Collider2D _characterCollider;
+		protected Collider2D[] _allCharacterColliders;
+		protected bool _originalImmuneToDamage;
 
 		/// <summary>
 		/// On init, we stop our particles, and initialize our dash bar
@@ -100,6 +102,7 @@ namespace MoreMountains.TopDownEngine
 
 			_mainCamera = Camera.main;
 			_characterCollider = GetComponent<Collider2D>();
+			_allCharacterColliders = GetComponentsInChildren<Collider2D>();
 			_originalLayer = gameObject.layer;
 
 			if (GUIManager.HasInstance && _character.CharacterType == Character.CharacterTypes.Player)
@@ -146,18 +149,37 @@ namespace MoreMountains.TopDownEngine
 			DashFeedback?.PlayFeedbacks(this.transform.position);
 			PlayAbilityStartFeedbacks();
             
+			// Set invulnerability FIRST, before disabling colliders
 			if (InvincibleWhileDashing)
 			{
-				_health.DamageDisabled();
+				if (_health != null)
+				{
+					// Store original value and set immune to damage
+					_originalImmuneToDamage = _health.ImmuneToDamage;
+					_health.ImmuneToDamage = true;
+					_health.DamageDisabled();
+					Debug.Log($"Dash: Invincibility ENABLED - ImmuneToDamage={_health.ImmuneToDamage}, Invulnerable={_health.Invulnerable}");
+				}
+				else
+				{
+					Debug.LogWarning("Dash: Health component not found! Cannot enable invincibility.");
+				}
 			}
 
 			// Pass through enemies during dash
 			if (PassThroughEnemiesWhileDashing)
 			{
-				if (DisableColliderDuringDash && _characterCollider != null)
+				if (DisableColliderDuringDash)
 				{
-					// Disable collider entirely for most reliable pass-through
-					_characterCollider.enabled = false;
+					// Disable ALL colliders (including children)
+					foreach (var collider in _allCharacterColliders)
+					{
+						if (collider != null)
+						{
+							collider.enabled = false;
+						}
+					}
+					Debug.Log($"Dash: Disabled {_allCharacterColliders.Length} collider(s)");
 				}
 				else
 				{
@@ -209,16 +231,29 @@ namespace MoreMountains.TopDownEngine
             
 			if (InvincibleWhileDashing)
 			{
-				_health.DamageEnabled();
+				if (_health != null)
+				{
+					// Restore original value
+					_health.ImmuneToDamage = _originalImmuneToDamage;
+					_health.DamageEnabled();
+					Debug.Log($"Dash: Invincibility DISABLED - ImmuneToDamage={_health.ImmuneToDamage}, Invulnerable={_health.Invulnerable}");
+				}
 			}
 
 			// Restore collision
 			if (PassThroughEnemiesWhileDashing)
 			{
-				if (DisableColliderDuringDash && _characterCollider != null)
+				if (DisableColliderDuringDash)
 				{
-					// Re-enable collider
-					_characterCollider.enabled = true;
+					// Re-enable ALL colliders
+					foreach (var collider in _allCharacterColliders)
+					{
+						if (collider != null)
+						{
+							collider.enabled = true;
+						}
+					}
+					Debug.Log($"Dash: Re-enabled {_allCharacterColliders.Length} collider(s)");
 				}
 				else
 				{
