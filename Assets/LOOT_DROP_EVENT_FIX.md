@@ -96,3 +96,4 @@ Look for: `"ChaserEnemy: Dropped KoalaCoinPicker at [position]"`
 ## Result
 
 The loot drop system now works reliably using TopDownEngine's event system. Enemies will drop KoalaCoinPicker items at the specified rate when they die, before getting destroyed/deactivated.
+

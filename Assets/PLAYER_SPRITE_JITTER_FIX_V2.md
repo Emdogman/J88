@@ -130,3 +130,4 @@ transform.rotation = Quaternion.Lerp(transform.rotation, targetRotation,
 - **Dead Zone Logic**: Uses `Mathf.DeltaAngle()` for proper angle comparison
 - **Performance**: Minimal impact, only rotates when needed
 - **Compatibility**: Works with all existing character systems
+

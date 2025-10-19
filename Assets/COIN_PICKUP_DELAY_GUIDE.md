@@ -259,3 +259,4 @@ In Scene view, items with active delay show a red wire sphere.
 - ✅ Better game feel
 
 **Coins now require a 1-second wait before pickup!** 🪙⏱️✨
+

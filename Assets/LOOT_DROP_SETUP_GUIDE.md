@@ -134,3 +134,4 @@ The loot system integrates seamlessly with TopDownEngine's:
 
 // Result: 30% chance to drop 1 KoalaCoinPicker with random position offset
 ```
+

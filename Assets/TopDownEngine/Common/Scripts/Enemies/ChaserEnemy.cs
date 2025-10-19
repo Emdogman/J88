@@ -71,6 +71,9 @@ namespace MoreMountains.TopDownEngine
         [Tooltip("Attack cooldown in seconds")]
         [SerializeField] private float attackCooldown = 1f;
         
+        [Tooltip("Duration of the attack animation (time to pause movement)")]
+        [SerializeField] private float attackAnimationDuration = 0.5f;
+        
         [Tooltip("Layer mask for what the enemy can attack")]
         [SerializeField] private LayerMask attackLayerMask = -1;
 
@@ -132,6 +135,7 @@ namespace MoreMountains.TopDownEngine
         private Character _character;
         private CharacterHandleWeapon _characterHandleWeapon;
         private Health _health;
+        private Animator _animator;
         
         // Attack state management
         private AttackState _currentAttackState = AttackState.Idle;
@@ -153,6 +157,9 @@ namespace MoreMountains.TopDownEngine
         // Attack interruption
         private bool _isAttackInterrupted = false;
         private float _attackInterruptEndTime;
+        
+        // Attack animation control
+        private bool _isAttacking = false;
         
         // State stability
         private float _stateCommitTime = 0.3f; // Minimum time to stay in a state
@@ -209,6 +216,7 @@ namespace MoreMountains.TopDownEngine
             _character = GetComponent<Character>();
             _characterHandleWeapon = GetComponent<CharacterHandleWeapon>();
             _health = GetComponent<Health>();
+            _animator = GetComponent<Animator>();
             
             if (_character == null)
             {
@@ -218,6 +226,11 @@ namespace MoreMountains.TopDownEngine
             if (_characterHandleWeapon == null)
             {
                 Debug.LogError($"ChaserEnemy: CharacterHandleWeapon component required on {gameObject.name}");
+            }
+            
+            if (_animator == null)
+            {
+                Debug.LogWarning($"ChaserEnemy: Animator component not found on {gameObject.name}");
             }
             
             if (_health == null)
@@ -388,6 +401,8 @@ namespace MoreMountains.TopDownEngine
             {
                 _currentAttackState = AttackState.MeleeAttack;
                 PerformMeleeAttack();
+                
+                
             }
             // Priority 2: Charge attack ONLY if already far away (not when player gets close)
             // Charge is used to close distance from afar, not as a reaction to player approaching
@@ -561,6 +576,33 @@ namespace MoreMountains.TopDownEngine
                 TriggerAttackAnimation();
                 _characterHandleWeapon.ShootStart();
                 _lastAttackTime = Time.time;
+                
+                // Stop movement during attack
+                StartCoroutine(AttackMovementPause());
+            }
+        }
+        
+        /// <summary>
+        /// Pauses movement during attack animation
+        /// </summary>
+        private System.Collections.IEnumerator AttackMovementPause()
+        {
+            _isAttacking = true;
+            rb.linearVelocity = Vector2.zero; // Stop immediately
+            
+            if (ShowDebugInfo)
+            {
+                Debug.Log($"{gameObject.name}: Attack started - movement paused");
+            }
+            
+            // Wait for attack animation to complete
+            yield return new WaitForSeconds(attackAnimationDuration);
+            
+            _isAttacking = false;
+            
+            if (ShowDebugInfo)
+            {
+                Debug.Log($"{gameObject.name}: Attack ended - movement resumed");
             }
         }
         
@@ -569,6 +611,10 @@ namespace MoreMountains.TopDownEngine
         /// </summary>
         private void TriggerAttackAnimation()
         {
+            // The MeleeWeapon component handles setting the Attack trigger automatically
+            // No additional code needed here - just keeping this method for potential future use
+            
+            // Try to call EnemyAnimationController if it exists (for compatibility)
             var animController = GetComponent("EnemyAnimationController");
             if (animController != null)
             {
@@ -582,6 +628,13 @@ namespace MoreMountains.TopDownEngine
         /// </summary>
         private void MoveEnemy()
         {
+            // Don't move during attack animation
+            if (_isAttacking)
+            {
+                rb.linearVelocity = Vector2.zero;
+                return;
+            }
+            
             if (_movement.magnitude < 0.01f)
             {
                 rb.linearVelocity = Vector2.zero;

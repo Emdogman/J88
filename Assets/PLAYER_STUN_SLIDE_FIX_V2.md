@@ -231,3 +231,4 @@ These all still affected the Dynamic rigidbody, causing the slide.
 - ✅ Simpler logic (no frame checks needed)
 
 **This is the definitive solution - the player physically CANNOT slide when kinematic!** 🍺🛑💪
+

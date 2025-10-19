@@ -176,3 +176,4 @@ This creates a modern twin-stick shooter feel where the character always faces w
 - Supports both 2D and 3D setups
 - Easy to disable or modify for different character types
 - Debug tools help with setup and troubleshooting
+

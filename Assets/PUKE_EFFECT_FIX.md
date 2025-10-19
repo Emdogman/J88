@@ -118,3 +118,4 @@ The issue was a conflict between:
 **Solution**: Let `PukeEffect.cs` handle its own destruction, respecting the `disappearAfterDuration` setting.
 
 **Result**: Puke now stays permanently by default, creating the intended "drunk trail" effect! 🍺💚
+

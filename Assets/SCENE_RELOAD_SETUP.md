@@ -56,3 +56,4 @@ When the player dies:
 ## 🚀 **Ready to Use**
 
 The scene reload system is now ready! When the player dies, the scene will automatically reload after 2 seconds, giving the player a fresh start. 🍺⚔️✨
+

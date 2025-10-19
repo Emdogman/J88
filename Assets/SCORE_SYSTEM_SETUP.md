@@ -139,3 +139,4 @@ You can extend the ScoreManager to fire events when score changes for things lik
 
 The score system is now ready! Every enemy kill will add 100 points to the score displayed in the top right corner. 🍺⚔️✨
 
+

@@ -76,3 +76,4 @@ Enable "Show Debug Info" to see:
 ## Result
 
 Enemies now drop KoalaCoinPicker items immediately when they die, before getting deactivated. The loot drop system works reliably with the existing TopDownEngine health and deactivation systems.
+

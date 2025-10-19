@@ -78,3 +78,4 @@ The `MainMenuButtonManager` script provides simple functionality for main menu b
 - Quit functionality works properly in both Unity Editor and built applications
 - Button listeners are automatically cleaned up when the object is destroyed
 - The script inherits from `TopDownMonoBehaviour` for TopDownEngine integration
+

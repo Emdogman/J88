@@ -97,3 +97,4 @@ If you still experience issues:
 - **Physics Sync**: Rotation now properly syncs with physics updates
 - **Backward Compatible**: All existing functionality preserved
 - **Debug Friendly**: Debug information still available when enabled
+

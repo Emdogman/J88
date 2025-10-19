@@ -189,3 +189,4 @@ The fix is:
 - ✅ Easy to understand and maintain
 
 **Your player will now stop on a dime when stunned!** 🍺🛑
+

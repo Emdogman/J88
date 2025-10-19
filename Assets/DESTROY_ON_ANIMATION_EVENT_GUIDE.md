@@ -204,3 +204,4 @@ Enemy death effect that should be pooled, not destroyed:
 - Set destroy delay to 0 or a small value (0.5-2 seconds)
 - Place event at the last frame of animation
 - Enable Debug during setup, disable for production
+

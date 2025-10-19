@@ -87,3 +87,4 @@ Vector2 directionToPlayer = (player.position - transform.position).normalized;
 - **Compatibility**: Works with all existing enemy behaviors
 - **Customization**: Rotation speed can be adjusted per enemy
 - **Sprite Orientation**: Uses 90-degree offset for typical Unity sprite orientation
+

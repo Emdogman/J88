@@ -54,3 +54,4 @@ If you need to change back to F:
 1. Change `<Keyboard>/space` back to `<Keyboard>/f` in `.inputactions` file
 2. Change `positiveButton: space` back to `positiveButton: f` in `InputManager.asset`
 3. Regenerate the Input System code if needed
+

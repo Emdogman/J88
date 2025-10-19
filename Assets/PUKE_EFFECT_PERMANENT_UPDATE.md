@@ -133,3 +133,4 @@ If you have existing puke effect prefabs:
 - ✅ **Optional**: Can enable disappearing mode
 - ✅ **Flexible**: Easy to switch between modes in Inspector
 - ✅ **Backward Compatible**: Old behavior available via checkbox
+

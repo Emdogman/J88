@@ -90,3 +90,4 @@ Enemies now get interrupted when the player attacks them, making combat more dyn
 - **Temporary effect** - Enemy resumes normal behavior after interruption
 - **Player advantage** - Gives players a way to counter enemy attacks
 - **Balanced design** - Interruption duration can be tuned for difficulty
+

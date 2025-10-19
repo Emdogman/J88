@@ -233,3 +233,4 @@ spawner.StartSpawning();
 **T=300s**: Spawn interval reaches minimum (1s), maximum difficulty
 
 The spawner creates a natural difficulty progression that keeps gameplay challenging and engaging!
+

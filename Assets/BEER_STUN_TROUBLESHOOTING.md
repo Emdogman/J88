@@ -129,3 +129,4 @@ If the system still doesn't work after following these steps:
 5. **Verify Scene Setup**: Make sure you're testing in the correct scene with proper character setup
 
 The system should work once all components are properly set up and configured! 🍺🥴✨
+

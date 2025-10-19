@@ -246,3 +246,4 @@ Mathf.PerlinNoise(Time.time * 0.5f + GetInstanceID(), 0)
 - ✅ Enemies feel alive and responsive
 
 **Enemies now move smoothly, never freeze, and always know what to do!** 🎮✨🤖
+

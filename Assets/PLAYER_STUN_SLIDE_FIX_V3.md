@@ -305,3 +305,4 @@ This will show if any system is missing or velocity is still changing.
 **If the player still slides after this, there's something else moving the transform directly (very unlikely).**
 
 The player should now be **absolutely, completely, 100% frozen** during stun! 🍺🛑🔒
+

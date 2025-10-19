@@ -211,3 +211,4 @@ attackCooldown: 1            - Time between melees
 - ✅ Relentless pursuit
 
 **Enemies are now aggressive, never retreat, and use attacks contextually based on their starting distance!** 🎮⚔️🔥
+
