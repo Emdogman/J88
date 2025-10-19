@@ -1078,7 +1078,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ecd1df79d1a558a47a6290dcb7a546b5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: MoreMountains.TopDownEngine::MoreMountains.TopDownEngine.MainMenuButtonManager
-  GameSceneName: MinimalScene2D
+  GameSceneName: Sakkuso
   PlayGameButton: {fileID: 1379497512}
   QuitGameButton: {fileID: 1442572744}
   ShowDebugInfo: 0
