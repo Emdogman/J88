@@ -1254,7 +1254,7 @@ MonoBehaviour:
     type: 3}
   coinDropAmount: 1
   dropOffset: 3
-  attackInterruptDuration: 1.5
+  attackInterruptDuration: 0.25
   MeleeAttackStartFeedbacks: {fileID: 330612940595272861}
   ShowDebugInfo: 1
 --- !u!58 &1825454371297854268
