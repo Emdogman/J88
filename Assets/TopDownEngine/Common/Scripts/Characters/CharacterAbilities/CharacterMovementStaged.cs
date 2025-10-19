@@ -47,7 +47,7 @@ namespace MoreMountains.TopDownEngine
         /// Deceleration value for Stage 3 (High Drift)
         /// </summary>
         [Tooltip("Deceleration value for Stage 3 (High Drift)")]
-        public float Stage3Deceleration = 1.5f;
+        public float Stage3Deceleration = 0.8f;
 
         /// <summary>
         /// Whether to show debug information about current stage
@@ -100,13 +100,13 @@ namespace MoreMountains.TopDownEngine
         /// How much momentum blocks direction changes in Stage 2 (like a car)
         /// </summary>
         [Tooltip("How much momentum blocks direction changes in Stage 2 (like a car)")]
-        public float Stage2CarMomentum = 0.8f;
+        public float Stage2CarMomentum = 0.85f;
         
         /// <summary>
         /// How much momentum blocks direction changes in Stage 3 (like a car)
         /// </summary>
         [Tooltip("How much momentum blocks direction changes in Stage 3 (like a car)")]
-        public float Stage3CarMomentum = 0.95f;
+        public float Stage3CarMomentum = 0.98f;
         
         /// <summary>
         /// Minimum speed threshold before momentum blocking kicks in
@@ -129,6 +129,10 @@ namespace MoreMountains.TopDownEngine
         protected Vector2 _carMomentum = Vector2.zero;
         protected Vector2 _lastVelocity = Vector2.zero;
         protected Vector2 _currentMomentumDirection = Vector2.zero;
+        
+        // Random drunk movement
+        protected Vector2 _randomDrunkDirection = Vector2.zero;
+        protected float _lastRandomDirectionChange = 0f;
 
         [Header("Drunk Wobble Settings")]
 
@@ -161,6 +165,32 @@ namespace MoreMountains.TopDownEngine
         /// </summary>
         [Tooltip("Secondary wobble frequency for complexity (Hz)")]
         public float DrunkWobbleSpeed2 = 5f;
+        
+        [Header("Random Drunk Movement")]
+        
+        /// <summary>
+        /// Enable random movement forces when drunk (makes control harder)
+        /// </summary>
+        [Tooltip("Enable random movement forces when drunk (makes control harder)")]
+        public bool EnableRandomDrunkMovement = true;
+        
+        /// <summary>
+        /// How much random force is applied in Stage 2
+        /// </summary>
+        [Tooltip("How much random force is applied in Stage 2")]
+        public float Stage2RandomForce = 0.3f;
+        
+        /// <summary>
+        /// How much random force is applied in Stage 3
+        /// </summary>
+        [Tooltip("How much random force is applied in Stage 3")]
+        public float Stage3RandomForce = 0.7f;
+        
+        /// <summary>
+        /// How often to change random direction (seconds)
+        /// </summary>
+        [Tooltip("How often to change random direction (seconds)")]
+        public float RandomDirectionChangeInterval = 0.3f;
 
         protected override void Initialization()
         {
@@ -473,6 +503,7 @@ namespace MoreMountains.TopDownEngine
         /// Applies drunk wobble effects to movement input (Stages 2 and 3)
         /// Stage 2 has moderate wobble, Stage 3 has strong wobble
         /// Uses pure sinusoidal oscillation for smooth, predictable wobble
+        /// Plus random forces to make control harder
         /// </summary>
         protected virtual void ApplyDrunkWobble()
         {
@@ -495,6 +526,13 @@ namespace MoreMountains.TopDownEngine
             
             Vector2 wobbleOffset = new Vector2(wobbleX, wobbleY);
             
+            // Add random drunk movement forces to make control harder
+            if (EnableRandomDrunkMovement)
+            {
+                ApplyRandomDrunkForce();
+                wobbleOffset += _randomDrunkDirection;
+            }
+            
             // Apply wobble to normalized input
             _normalizedInput += wobbleOffset;
             _normalizedInput = Vector2.ClampMagnitude(_normalizedInput, 1f);
@@ -502,6 +540,29 @@ namespace MoreMountains.TopDownEngine
             if (ShowDebugInfo)
             {
                 Debug.Log($"Drunk Wobble Applied (Stage {CurrentStage}): Offset {wobbleOffset}, Final Input: {_normalizedInput}");
+            }
+        }
+        
+        /// <summary>
+        /// Applies random movement forces when drunk to make character harder to control
+        /// </summary>
+        protected virtual void ApplyRandomDrunkForce()
+        {
+            // Change direction at intervals
+            if (Time.time - _lastRandomDirectionChange >= RandomDirectionChangeInterval)
+            {
+                float randomForce = CurrentStage == MovementStage.Stage2_Drift ? Stage2RandomForce : Stage3RandomForce;
+                
+                // Generate completely random direction
+                float randomAngle = Random.Range(0f, 360f) * Mathf.Deg2Rad;
+                _randomDrunkDirection = new Vector2(Mathf.Cos(randomAngle), Mathf.Sin(randomAngle)) * randomForce;
+                
+                _lastRandomDirectionChange = Time.time;
+                
+                if (ShowDebugInfo)
+                {
+                    Debug.Log($"Random Drunk Force Applied: {_randomDrunkDirection} (Stage {CurrentStage})");
+                }
             }
         }
 
