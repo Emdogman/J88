@@ -9,6 +9,8 @@ namespace MoreMountains.TopDownEngine
     /// Displays a series of UI images as a slideshow on scene start
     /// Pauses the game until all slides are viewed
     /// Press Space to advance to the next slide
+    /// 
+    /// Default setup: 2 slides that display in sequence
     /// </summary>
     public class IntroSlideshow : MonoBehaviour
     {
@@ -32,10 +34,6 @@ namespace MoreMountains.TopDownEngine
 
         [Tooltip("The text to display in the prompt")]
         public string PromptMessage = "Press Space to Continue";
-
-        [Header("Background Slide")]
-        [Tooltip("If true, the last slide will be shown as background from the start")]
-        public bool LastSlideAsBackground = true;
 
         [Header("UI Elements to Hide")]
         [Tooltip("Optional: UI elements to hide during the slideshow (like tutorial overlays)")]
@@ -86,20 +84,9 @@ namespace MoreMountains.TopDownEngine
                         _slideCanvasGroups[i] = Slides[i].gameObject.AddComponent<CanvasGroup>();
                     }
 
-                    // If last slide as background, show it immediately
-                    if (LastSlideAsBackground && i == Slides.Length - 1)
-                    {
-                        Slides[i].gameObject.SetActive(true);
-                        _slideCanvasGroups[i].alpha = 1f;
-                        Slides[i].transform.SetAsFirstSibling(); // Send to back
-                        Debug.Log($"IntroSlideshow: Slide {i + 1} set as background");
-                    }
-                    else
-                    {
-                        // Hide all other slides initially
-                        Slides[i].gameObject.SetActive(false);
-                        _slideCanvasGroups[i].alpha = 0f;
-                    }
+                    // Hide all slides initially
+                    Slides[i].gameObject.SetActive(false);
+                    _slideCanvasGroups[i].alpha = 0f;
                 }
             }
         }
@@ -152,21 +139,8 @@ namespace MoreMountains.TopDownEngine
                 return;
             }
 
-            // Don't show the background slide again if it's already visible
-            if (LastSlideAsBackground && index == Slides.Length - 1 && Slides[index].gameObject.activeSelf)
-            {
-                Debug.Log($"IntroSlideshow: Slide {index + 1}/{Slides.Length} already visible as background");
-                return;
-            }
-
             // Activate the slide
             Slides[index].gameObject.SetActive(true);
-            
-            // Bring non-background slides to the front
-            if (!LastSlideAsBackground || index != Slides.Length - 1)
-            {
-                Slides[index].transform.SetAsLastSibling(); // Bring to front
-            }
 
             // Fade in
             if (FadeDuration > 0f)
@@ -294,11 +268,8 @@ namespace MoreMountains.TopDownEngine
         {
             _isTransitioning = true;
 
-            // Hide current slide (but not if it's the background slide)
-            if (!LastSlideAsBackground || _currentSlideIndex != Slides.Length - 1)
-            {
-                HideSlide(_currentSlideIndex);
-            }
+            // Hide current slide
+            HideSlide(_currentSlideIndex);
 
             // Move to next slide
             _currentSlideIndex++;
@@ -311,17 +282,8 @@ namespace MoreMountains.TopDownEngine
             }
             else
             {
-                // Show next slide (unless it's the background slide which is already visible)
-                if (!LastSlideAsBackground || _currentSlideIndex != Slides.Length - 1)
-                {
-                    StartCoroutine(TransitionToNextSlide());
-                }
-                else
-                {
-                    // We're on the last slide (background), just wait for input
-                    _isTransitioning = false;
-                    Debug.Log($"IntroSlideshow: Now on background slide {_currentSlideIndex + 1}");
-                }
+                // Show next slide
+                StartCoroutine(TransitionToNextSlide());
             }
         }
 
