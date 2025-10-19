@@ -10237,7 +10237,11 @@ MonoBehaviour:
     CanInterruptRefill: 0
     CooldownState: 0
     CurrentDurationLeft: 0
-  InvincibleWhileDashing: 0
+  InvincibleWhileDashing: 1
+  PassThroughEnemiesWhileDashing: 1
+  EnemyLayerMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
   DashFeedback: {fileID: 5986297841957823375}
 --- !u!114 &114545434076996454
 MonoBehaviour:

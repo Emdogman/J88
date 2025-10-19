@@ -53,7 +53,16 @@ namespace MoreMountains.TopDownEngine
 		[Header("Damage")] 
 		/// if this is true, this character won't receive any damage while a dash is in progress
 		[Tooltip("if this is true, this character won't receive any damage while a dash is in progress")]
-		public bool InvincibleWhileDashing = false; 
+		public bool InvincibleWhileDashing = true;
+		
+		[Header("Collision")]
+		/// if this is true, the character will pass through enemies while dashing
+		[Tooltip("if this is true, the character will pass through enemies while dashing")]
+		public bool PassThroughEnemiesWhileDashing = true;
+		
+		/// if true, disables the collider entirely during dash (more reliable than layer switching)
+		[Tooltip("if true, disables the collider entirely during dash (more reliable than layer switching)")]
+		public bool DisableColliderDuringDash = true; 
 
 		[Header("Feedback")]
 		/// the feedbacks to play when dashing
@@ -76,6 +85,10 @@ namespace MoreMountains.TopDownEngine
 		protected int _dashingAnimationParameter;
 		protected int _dashingDirectionXAnimationParameter;
 		protected int _dashingDirectionYAnimationParameter;
+		
+		// Collision layer switching for dash
+		protected int _originalLayer;
+		protected Collider2D _characterCollider;
 
 		/// <summary>
 		/// On init, we stop our particles, and initialize our dash bar
@@ -86,6 +99,8 @@ namespace MoreMountains.TopDownEngine
 			Cooldown.Initialization();
 
 			_mainCamera = Camera.main;
+			_characterCollider = GetComponent<Collider2D>();
+			_originalLayer = gameObject.layer;
 
 			if (GUIManager.HasInstance && _character.CharacterType == Character.CharacterTypes.Player)
 			{
@@ -136,6 +151,21 @@ namespace MoreMountains.TopDownEngine
 				_health.DamageDisabled();
 			}
 
+			// Pass through enemies during dash
+			if (PassThroughEnemiesWhileDashing)
+			{
+				if (DisableColliderDuringDash && _characterCollider != null)
+				{
+					// Disable collider entirely for most reliable pass-through
+					_characterCollider.enabled = false;
+				}
+				else
+				{
+					// Switch to NoCollisions layer (Layer 14)
+					gameObject.layer = 14;
+				}
+			}
+
 			HandleDashMode();
 		}
 
@@ -180,6 +210,21 @@ namespace MoreMountains.TopDownEngine
 			if (InvincibleWhileDashing)
 			{
 				_health.DamageEnabled();
+			}
+
+			// Restore collision
+			if (PassThroughEnemiesWhileDashing)
+			{
+				if (DisableColliderDuringDash && _characterCollider != null)
+				{
+					// Re-enable collider
+					_characterCollider.enabled = true;
+				}
+				else
+				{
+					// Restore original layer
+					gameObject.layer = _originalLayer;
+				}
 			}
 
 			_movement.ChangeState(CharacterStates.MovementStates.Idle);
