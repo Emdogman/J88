@@ -1240,6 +1240,12 @@ MonoBehaviour:
   enemyLayerMask:
     serializedVersion: 2
     m_Bits: 8448
+  obstacleLayerMask:
+    serializedVersion: 2
+    m_Bits: 256
+  obstacleDetectionDistance: 1.5
+  obstacleRaycastCount: 8
+  obstacleAvoidanceStrength: 1.408
   attackCooldown: 1
   attackAnimationDuration: 0.5
   attackLayerMask:
