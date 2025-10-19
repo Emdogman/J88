@@ -6,11 +6,16 @@ namespace MoreMountains.TopDownEngine
 {
     /// <summary>
     /// Reloads the current scene when the player dies
+    /// Can wait for player input (Space key) instead of auto-reload
     /// </summary>
     public class SceneReloadOnDeath : MonoBehaviour
     {
+        [Header("Reload Mode")]
+        [Tooltip("Wait for Space key press instead of auto-reload after delay")]
+        public bool waitForSpaceKey = true;
+        
         [Header("Settings")]
-        [Tooltip("Delay before reloading the scene (in seconds)")]
+        [Tooltip("Delay before reloading the scene (in seconds) - only used if waitForSpaceKey is false")]
         public float reloadDelay = 2f;
         
         [Tooltip("Player tag to find the player Health component")]
@@ -21,6 +26,7 @@ namespace MoreMountains.TopDownEngine
         
         private Health _playerHealth;
         private bool _hasReloaded = false;
+        private bool _waitingForInput = false;
         
         private void Start()
         {
@@ -34,6 +40,16 @@ namespace MoreMountains.TopDownEngine
             if (_playerHealth == null)
             {
                 SubscribeToPlayerHealth();
+            }
+            
+            // Check for Space key press if waiting for input
+            if (_waitingForInput && Input.GetKeyDown(KeyCode.Space))
+            {
+                if (debugMode)
+                {
+                    Debug.Log("[SceneReloadOnDeath] Space pressed! Reloading scene...");
+                }
+                ReloadScene();
             }
         }
         
@@ -80,19 +96,34 @@ namespace MoreMountains.TopDownEngine
                 return; // Prevent multiple reloads
             }
             
-            _hasReloaded = true;
-            
-            if (debugMode)
+            if (waitForSpaceKey)
             {
-                Debug.Log("[SceneReloadOnDeath] Player died! Reloading scene in " + reloadDelay + " seconds...");
+                // Wait for player to press Space
+                _waitingForInput = true;
+                
+                if (debugMode)
+                {
+                    Debug.Log("[SceneReloadOnDeath] Player died! Waiting for Space key press to reload...");
+                }
             }
-            
-            // Reload the scene after delay
-            Invoke(nameof(ReloadScene), reloadDelay);
+            else
+            {
+                // Auto-reload after delay (old behavior)
+                _hasReloaded = true;
+                
+                if (debugMode)
+                {
+                    Debug.Log("[SceneReloadOnDeath] Player died! Reloading scene in " + reloadDelay + " seconds...");
+                }
+                
+                Invoke(nameof(ReloadScene), reloadDelay);
+            }
         }
         
         private void ReloadScene()
         {
+            _hasReloaded = true; // Prevent multiple reloads
+            
             if (debugMode)
             {
                 Debug.Log("[SceneReloadOnDeath] Reloading scene...");
