@@ -392,7 +392,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: MoreMountains.TopDownEngine::MoreMountains.TopDownEngine.DeathMusicController
   deathMusic: {fileID: 8300000, guid: 98096f1ca0c3fd8478d4f6f080fec10b, type: 3}
-  musicVolume: 0.7
+  musicVolume: 1
   loopMusic: 0
   fadeIn: 0
   fadeInDuration: 1
@@ -2820,7 +2820,7 @@ Tilemap:
     e31: 0
     e32: 0
     e33: 1
---- !u!1 &1086412904
+--- !u!1 &1010970968
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -2828,29 +2828,29 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 1086412906}
-  - component: {fileID: 1086412905}
+  - component: {fileID: 1010970971}
+  - component: {fileID: 1010970970}
   m_Layer: 0
-  m_Name: music
+  m_Name: BackgroundMusic
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!82 &1086412905
+--- !u!82 &1010970970
 AudioSource:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1086412904}
+  m_GameObject: {fileID: 1010970968}
   m_Enabled: 1
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 8300000, guid: cb488b8863d0328499943665f0a448c7, type: 3}
   m_PlayOnAwake: 1
-  m_Volume: 1
+  m_Volume: 0.619
   m_Pitch: 1
   Loop: 1
   Mute: 0
@@ -2934,16 +2934,16 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
---- !u!4 &1086412906
+--- !u!4 &1010970971
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1086412904}
+  m_GameObject: {fileID: 1010970968}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -3.56565, y: 6.28238, z: 0}
+  m_LocalPosition: {x: 2.21616, y: 0.56791, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -5077,6 +5077,16 @@ Tilemap:
       serializedVersion: 2
       m_TileIndex: 17
       m_TileSpriteIndex: 14
+      m_TileMatrixIndex: 0
+      m_TileColorIndex: 0
+      m_TileObjectToInstantiateIndex: 65535
+      dummyAlignment: 0
+      m_AllTileFlags: 1073741825
+  - first: {x: 0, y: 0, z: 0}
+    second:
+      serializedVersion: 2
+      m_TileIndex: 15
+      m_TileSpriteIndex: 1
       m_TileMatrixIndex: 0
       m_TileColorIndex: 0
       m_TileObjectToInstantiateIndex: 65535
@@ -21314,7 +21324,7 @@ Tilemap:
     m_Data: {fileID: 11400000, guid: eca7d4d3060394f44b2d8ee132857de3, type: 2}
   - m_RefCount: 6
     m_Data: {fileID: 11400000, guid: 082b2b2ed38823c43ae6a072e7cba13e, type: 2}
-  - m_RefCount: 100
+  - m_RefCount: 101
     m_Data: {fileID: 11400000, guid: aeabc0c8a5751934ca2fd2adc1b65223, type: 2}
   - m_RefCount: 4
     m_Data: {fileID: 11400000, guid: 4c7dadd9215037a40ac97cffa5da8d7c, type: 2}
@@ -21341,7 +21351,7 @@ Tilemap:
   m_TileSpriteArray:
   - m_RefCount: 105
     m_Data: {fileID: 21300000, guid: 774f03a2968f7b547b33fa56848b77f4, type: 3}
-  - m_RefCount: 100
+  - m_RefCount: 101
     m_Data: {fileID: 1013840987, guid: 8a898f66a6a43214ab50be97a90f6f5c, type: 3}
   - m_RefCount: 1
     m_Data: {fileID: -1305787104, guid: ebb0e05bdedd40948b0c0a1090e4934b, type: 3}
@@ -21394,7 +21404,7 @@ Tilemap:
   - m_RefCount: 3
     m_Data: {fileID: 21300000, guid: df62dcbcdf5b6dd459f3c279666a601e, type: 3}
   m_TileMatrixArray:
-  - m_RefCount: 1730
+  - m_RefCount: 1731
     m_Data:
       e00: 1
       e01: 0
@@ -21467,7 +21477,7 @@ Tilemap:
       e32: 0
       e33: 1
   m_TileColorArray:
-  - m_RefCount: 1813
+  - m_RefCount: 1814
     m_Data: {r: 1, g: 1, b: 1, a: 1}
   m_TileObjectToInstantiateArray: []
   m_AnimationFrameRate: 1
@@ -28115,6 +28125,16 @@ PrefabInstance:
       propertyPath: m_Color.r
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 8081698216406063057, guid: c2c355735b055da4e81d1b5ae1857949,
+        type: 3}
+      propertyPath: m_Navigation.m_SelectOnUp
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 8193225162987663571, guid: c2c355735b055da4e81d1b5ae1857949,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 8193475115782559929, guid: c2c355735b055da4e81d1b5ae1857949,
         type: 3}
       propertyPath: m_IsActive
@@ -28449,6 +28469,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_AnchoredPosition.y
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8263419089027830759, guid: c2c355735b055da4e81d1b5ae1857949,
+        type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: -224
       objectReference: {fileID: 0}
     - target: {fileID: 8263428124613116967, guid: c2c355735b055da4e81d1b5ae1857949,
         type: 3}
@@ -28897,6 +28922,8 @@ PrefabInstance:
     - {fileID: 8194124051114207625, guid: c2c355735b055da4e81d1b5ae1857949, type: 3}
     - {fileID: 8193547882570139993, guid: c2c355735b055da4e81d1b5ae1857949, type: 3}
     - {fileID: 8194245454614737685, guid: c2c355735b055da4e81d1b5ae1857949, type: 3}
+    - {fileID: 8193369320815074743, guid: c2c355735b055da4e81d1b5ae1857949, type: 3}
+    - {fileID: 8193609484144847657, guid: c2c355735b055da4e81d1b5ae1857949, type: 3}
     m_AddedGameObjects:
     - targetCorrespondingSourceObject: {fileID: 5209474815175277497, guid: c2c355735b055da4e81d1b5ae1857949,
         type: 3}
@@ -28930,6 +28957,6 @@ SceneRoots:
   - {fileID: 1141525492}
   - {fileID: 278722363}
   - {fileID: 1257388420}
-  - {fileID: 1086412906}
   - {fileID: 1566617224}
   - {fileID: 38442133}
+  - {fileID: 1010970971}
