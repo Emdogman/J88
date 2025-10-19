@@ -10146,7 +10146,8 @@ MonoBehaviour:
   MomentumBuildRate: 3
   MomentumDecayRate: 200
   EnableDrunkWobble: 1
-  DrunkWobbleAmount: 0.8
+  Stage2WobbleAmount: 0.08
+  Stage3WobbleAmount: 0.15
   DrunkWobbleSpeed: 7
   DrunkWobbleSpeed2: 5
 --- !u!114 &114079283237680582
