@@ -142,13 +142,13 @@ namespace MoreMountains.TopDownEngine
         /// How much the input wobbles in Stage 2 (tipsy) - less than Stage 3
         /// </summary>
         [Tooltip("How much the input wobbles in Stage 2 (tipsy) - less than Stage 3")]
-        public float Stage2WobbleAmount = 0.08f;
+        public float Stage2WobbleAmount = 0.25f;
 
         /// <summary>
         /// How much the input wobbles in Stage 3 (very drunk) - most wobble
         /// </summary>
         [Tooltip("How much the input wobbles in Stage 3 (very drunk) - most wobble")]
-        public float Stage3WobbleAmount = 0.15f;
+        public float Stage3WobbleAmount = 0.5f;
 
         /// <summary>
         /// Primary wobble frequency (Hz)
