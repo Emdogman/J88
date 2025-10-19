@@ -83,6 +83,9 @@ namespace MoreMountains.TopDownEngine
         
         [Tooltip("Rigidbody2D for physics movement (auto-assigned if null)")]
         [SerializeField] private Rigidbody2D rb;
+        
+        [Tooltip("Tilemap to check for walkable tiles (optional, auto-finds if null)")]
+        [SerializeField] private UnityEngine.Tilemaps.Tilemap walkableTilemap;
 
         [Header("Player Detection")]
         [Tooltip("Tag to search for when finding the player")]
@@ -704,21 +707,22 @@ namespace MoreMountains.TopDownEngine
         }
         
         /// <summary>
-        /// Drops loot - coins only
+        /// Drops loot - beer only (with tilemap validation)
         /// </summary>
         private void DropLoot()
         {
             if (coinDropPrefab == null || Random.Range(0f, 1f) > coinDropRate) return;
 
+            // Auto-find tilemap if not assigned
+            if (walkableTilemap == null)
+            {
+                FindWalkableTilemap();
+            }
+
             for (int i = 0; i < coinDropAmount; i++)
             {
-                Vector3 randomOffset = new Vector3(
-                    Random.Range(-dropOffset, dropOffset),
-                    Random.Range(-dropOffset, dropOffset),
-                    0f
-                );
+                Vector3 targetPosition = GetValidCoinDropPosition();
                 
-                Vector3 targetPosition = transform.position + randomOffset;
                 GameObject droppedItem = Instantiate(coinDropPrefab, transform.position, Quaternion.identity);
                 
                 // Add pickup delay (1 second before pickable)
@@ -728,6 +732,100 @@ namespace MoreMountains.TopDownEngine
                 // Add drop animation
                 CoinDropAnimation animation = droppedItem.AddComponent<CoinDropAnimation>();
                 animation.StartAnimation(transform.position, targetPosition);
+            }
+        }
+        
+        /// <summary>
+        /// Finds a valid position for beer drop that's on a walkable tile
+        /// </summary>
+        private Vector3 GetValidCoinDropPosition()
+        {
+            const int maxAttempts = 8; // Try 8 random positions
+            
+            for (int attempt = 0; attempt < maxAttempts; attempt++)
+            {
+                Vector3 randomOffset = new Vector3(
+                    Random.Range(-dropOffset, dropOffset),
+                    Random.Range(-dropOffset, dropOffset),
+                    0f
+                );
+                
+                Vector3 candidatePosition = transform.position + randomOffset;
+                
+                // Check if position is on a walkable tile
+                if (IsPositionWalkable(candidatePosition))
+                {
+                    return candidatePosition;
+                }
+            }
+            
+            // Fallback: spawn at enemy position if no valid position found
+            if (ShowDebugInfo)
+            {
+                Debug.LogWarning($"{gameObject.name}: Could not find valid beer drop position, using enemy position");
+            }
+            return transform.position;
+        }
+        
+        /// <summary>
+        /// Checks if a world position is on a walkable tile
+        /// </summary>
+        private bool IsPositionWalkable(Vector3 worldPosition)
+        {
+            // If no tilemap assigned, allow all positions (failsafe)
+            if (walkableTilemap == null)
+            {
+                return true;
+            }
+            
+            // Convert world position to tilemap cell coordinates
+            Vector3Int cellPosition = walkableTilemap.WorldToCell(worldPosition);
+            
+            // Check if there's a tile at this position
+            bool hasTile = walkableTilemap.HasTile(cellPosition);
+            
+            if (ShowDebugInfo && !hasTile)
+            {
+                Debug.Log($"Position {worldPosition} (cell {cellPosition}) has no walkable tile");
+            }
+            
+            return hasTile;
+        }
+        
+        /// <summary>
+        /// Auto-finds the walkable tilemap in the scene
+        /// </summary>
+        private void FindWalkableTilemap()
+        {
+            // Look for common tilemap names
+            string[] tilemapNames = { "Ground", "Floor", "Walkable", "Base", "Tilemap" };
+            
+            foreach (string name in tilemapNames)
+            {
+                GameObject tilemapObj = GameObject.Find(name);
+                if (tilemapObj != null)
+                {
+                    walkableTilemap = tilemapObj.GetComponent<UnityEngine.Tilemaps.Tilemap>();
+                    if (walkableTilemap != null)
+                    {
+                        if (ShowDebugInfo)
+                        {
+                            Debug.Log($"ChaserEnemy: Auto-found walkable tilemap '{name}'");
+                        }
+                        return;
+                    }
+                }
+            }
+            
+            // Fallback: find any tilemap in scene
+            walkableTilemap = FindObjectOfType<UnityEngine.Tilemaps.Tilemap>();
+            if (walkableTilemap != null && ShowDebugInfo)
+            {
+                Debug.Log($"ChaserEnemy: Auto-found tilemap '{walkableTilemap.name}'");
+            }
+            else if (ShowDebugInfo)
+            {
+                Debug.LogWarning("ChaserEnemy: No tilemap found in scene. Beer will drop without validation.");
             }
         }
 
