@@ -48,40 +48,28 @@ namespace MoreMountains.TopDownEngine
         private Vector3 _startPosition;
         private float _elapsedTime = 0f;
         private bool _hasStarted = false;
-        private float _startTime;
+        private bool _manuallyStarted = false;
 
         private void Start()
         {
-            _startTime = Time.time;
+            // Don't auto-start - wait for SetLandedPosition() to be called
+            _hasStarted = false;
         }
 
         private void OnEnable()
         {
             // Reset when object is enabled (like when spawned)
             _hasStarted = false;
+            _manuallyStarted = false;
             _elapsedTime = 0f;
-            _startTime = Time.time;
         }
 
         private void Update()
         {
-            // Wait for start delay
+            // Only start if manually triggered via SetLandedPosition()
             if (!_hasStarted)
             {
-                if (Time.time - _startTime >= startDelay)
-                {
-                    _hasStarted = true;
-                    _startPosition = transform.position;
-                    
-                    if (showDebugInfo)
-                    {
-                        Debug.Log($"{gameObject.name}: Sinus movement started at position {_startPosition}");
-                    }
-                }
-                else
-                {
-                    return;
-                }
+                return;
             }
 
             if (!enableMovement) return;

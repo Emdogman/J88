@@ -752,9 +752,8 @@ namespace MoreMountains.TopDownEngine
                 PickableDelay pickupDelay = droppedItem.AddComponent<PickableDelay>();
                 pickupDelay.pickupDelay = 1f;
                 
-                // Add sinus movement (will start after landing)
+                // Add sinus movement (will be triggered by CoinDropAnimation when landing completes)
                 SinusMovement sinusMovement = droppedItem.AddComponent<SinusMovement>();
-                sinusMovement.startDelay = 0.5f; // Wait for drop animation
                 sinusMovement.horizontalAmplitude = 0.2f;
                 sinusMovement.verticalAmplitude = 0.15f;
                 sinusMovement.horizontalSpeed = 2f;
