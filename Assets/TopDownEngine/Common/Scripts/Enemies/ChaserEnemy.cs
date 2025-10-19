@@ -66,6 +66,21 @@ namespace MoreMountains.TopDownEngine
         
         [Tooltip("Layer mask for other enemies to avoid")]
         [SerializeField] private LayerMask enemyLayerMask = -1;
+        
+        [Header("Obstacle Avoidance")]
+        [Tooltip("Layer mask for obstacles/walls")]
+        [SerializeField] private LayerMask obstacleLayerMask = -1;
+        
+        [Tooltip("Distance to raycast ahead for obstacles")]
+        [SerializeField] private float obstacleDetectionDistance = 1.5f;
+        
+        [Tooltip("Number of raycasts to use for obstacle detection")]
+        [Range(3, 9)]
+        [SerializeField] private int obstacleRaycastCount = 5;
+        
+        [Tooltip("How strongly to avoid obstacles")]
+        [Range(0f, 2f)]
+        [SerializeField] private float obstacleAvoidanceStrength = 1.5f;
 
         [Header("Attack Settings")]
         [Tooltip("Attack cooldown in seconds")]
@@ -491,7 +506,14 @@ namespace MoreMountains.TopDownEngine
                 _movement *= 0.5f; // Slower when in melee range
             }
             
-            // Add enemy avoidance
+            // Add obstacle avoidance (priority 1)
+            Vector2 obstacleAvoidance = CalculateObstacleAvoidance();
+            if (obstacleAvoidance != Vector2.zero)
+            {
+                _movement = (_movement + obstacleAvoidance * obstacleAvoidanceStrength).normalized;
+            }
+            
+            // Add enemy avoidance (priority 2)
             Vector2 avoidance = CalculateAvoidance();
             if (avoidance != Vector2.zero)
             {
@@ -522,6 +544,111 @@ namespace MoreMountains.TopDownEngine
             }
 
             return avoidance.normalized;
+        }
+
+        /// <summary>
+        /// Advanced obstacle avoidance using multiple raycasts
+        /// </summary>
+        private Vector2 CalculateObstacleAvoidance()
+        {
+            if (player == null) return Vector2.zero;
+
+            Vector2 avoidanceDirection = Vector2.zero;
+            Vector2 currentDirection = _movement.normalized;
+            if (currentDirection == Vector2.zero)
+            {
+                currentDirection = ((Vector2)player.position - (Vector2)transform.position).normalized;
+            }
+
+            // Cast multiple rays in a cone ahead of the enemy
+            float angleSpread = 60f; // Total angle spread
+            float angleStep = angleSpread / (obstacleRaycastCount - 1);
+            float startAngle = -angleSpread / 2f;
+
+            float closestHitDistance = obstacleDetectionDistance;
+            Vector2 bestAvoidanceDirection = Vector2.zero;
+            int obstaclesDetected = 0;
+
+            for (int i = 0; i < obstacleRaycastCount; i++)
+            {
+                float angle = startAngle + (angleStep * i);
+                Vector2 rayDirection = RotateVector(currentDirection, angle);
+                
+                RaycastHit2D hit = Physics2D.Raycast(
+                    transform.position,
+                    rayDirection,
+                    obstacleDetectionDistance,
+                    obstacleLayerMask
+                );
+
+                if (hit.collider != null)
+                {
+                    obstaclesDetected++;
+                    
+                    // Calculate avoidance direction perpendicular to obstacle
+                    Vector2 hitNormal = hit.normal;
+                    Vector2 avoidDirection = hitNormal;
+                    
+                    // Weight by distance (closer = stronger avoidance)
+                    float distanceFactor = 1f - (hit.distance / obstacleDetectionDistance);
+                    avoidanceDirection += avoidDirection * distanceFactor;
+                    
+                    if (hit.distance < closestHitDistance)
+                    {
+                        closestHitDistance = hit.distance;
+                        bestAvoidanceDirection = hitNormal;
+                    }
+
+                    // Debug visualization
+                    if (ShowDebugInfo)
+                    {
+                        Debug.DrawRay(transform.position, rayDirection * hit.distance, Color.red);
+                    }
+                }
+                else
+                {
+                    if (ShowDebugInfo)
+                    {
+                        Debug.DrawRay(transform.position, rayDirection * obstacleDetectionDistance, Color.green);
+                    }
+                }
+            }
+
+            // If obstacles detected, use combined avoidance
+            if (obstaclesDetected > 0)
+            {
+                // Normalize and weight by number of obstacles
+                avoidanceDirection = avoidanceDirection.normalized;
+                
+                // If very close to obstacle, use best direction
+                if (closestHitDistance < obstacleDetectionDistance * 0.5f)
+                {
+                    avoidanceDirection = bestAvoidanceDirection;
+                }
+
+                if (ShowDebugInfo)
+                {
+                    Debug.Log($"Obstacle detected! Avoiding: {avoidanceDirection}, Obstacles: {obstaclesDetected}");
+                }
+
+                return avoidanceDirection;
+            }
+
+            return Vector2.zero;
+        }
+
+        /// <summary>
+        /// Rotates a 2D vector by an angle
+        /// </summary>
+        private Vector2 RotateVector(Vector2 vector, float angle)
+        {
+            float rad = angle * Mathf.Deg2Rad;
+            float cos = Mathf.Cos(rad);
+            float sin = Mathf.Sin(rad);
+            return new Vector2(
+                vector.x * cos - vector.y * sin,
+                vector.x * sin + vector.y * cos
+            );
         }
 
         /// <summary>
