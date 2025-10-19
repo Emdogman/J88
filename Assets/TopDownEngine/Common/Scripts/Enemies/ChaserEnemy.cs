@@ -668,6 +668,11 @@ namespace MoreMountains.TopDownEngine
                 Vector3 targetPosition = transform.position + randomOffset;
                 GameObject droppedItem = Instantiate(coinDropPrefab, transform.position, Quaternion.identity);
                 
+                // Add pickup delay (1 second before pickable)
+                PickableDelay pickupDelay = droppedItem.AddComponent<PickableDelay>();
+                pickupDelay.pickupDelay = 1f;
+                
+                // Add drop animation
                 CoinDropAnimation animation = droppedItem.AddComponent<CoinDropAnimation>();
                 animation.StartAnimation(transform.position, targetPosition);
             }
